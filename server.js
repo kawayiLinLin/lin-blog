@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(bodyParser.json({ limit: '200mb' }))
 
-app.use('/public/', express.static('./public'))
+app.use('/lin/', express.static('./public'))
 
 app.get('/', function(_req, res) {
     res.redirect('/lin')
