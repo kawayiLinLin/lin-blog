@@ -22,9 +22,9 @@ app.get('/lin', function(req, res) {
 })
 
 
-const privateKey = fs.readFileSync('./2685862_yzl.xyz.key', 'utf8')
+const privateKey = fs.readFileSync('./4388799_yzl.xyz.key', 'utf8')
 
-const certificate = fs.readFileSync('./2685862_yzl.xyz.pem', 'utf8')
+const certificate = fs.readFileSync('./4388799_yzl.xyz.pem', 'utf8')
 
 const credentials = { key: privateKey, cert: certificate }
 
