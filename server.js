@@ -18,7 +18,7 @@ app.get('/', function(_req, res) {
 })
 
 app.get('/lin', function(req, res) {
-    res.sendFile('./public/index.html')
+    res.sendFile(require('path').join(__dirname, './public/index.html'))
 })
 
 
@@ -31,5 +31,5 @@ const credentials = { key: privateKey, cert: certificate }
 const https = require('https').Server(credentials, app)
 
 https.listen(443, function() {
-  console.log('listening on *:2020')
+  console.log('listening on *:443')
 })
