@@ -17,8 +17,14 @@ app.get('/', function(_req, res) {
     res.redirect('/lin')
 })
 
-app.get('/lin', function(req, res) {
+app.get('/lin', function(_req, res) {
     res.sendFile(require('path').join(__dirname, './public/index.html'))
+})
+
+app.post('/deploy', function(_req, res) {
+    const child_process = require('child_process')
+    child_process.execFile('./deploy.sh')
+    res.end()
 })
 
 
