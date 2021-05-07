@@ -24,6 +24,7 @@ app.get('/lin', function(_req, res) {
 app.post('/deploy', function(_req, res) {
     console.log('start')
     const child_process = require('child_process')
+    child_process.exec('chmod +x ./deploy.sh')
     child_process.execFile('./deploy.sh', function(error, stdout,  stderr) {
         if (error) {
             console.log(error)
