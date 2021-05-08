@@ -121,6 +121,7 @@ menu:
   archives: /archives/ || fa fa-archive
   tags: /tags/ || fa fa-tags
   categories: /categories/ || fa fa-th
+  search: /search/ || fa fa-search
   #schedule: /schedule/ || fa fa-calendar
   #sitemap: /sitemap.xml || fa fa-sitemap
   #commonweal: /404/ || fa fa-heartbeat
