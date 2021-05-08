@@ -116,3 +116,12 @@ symbols_count_time:
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: ''
+
+
+# 搜索
+search:
+  path: search.xml
+  field: post
+  content: true
+  format: html
+  limit: 1000
