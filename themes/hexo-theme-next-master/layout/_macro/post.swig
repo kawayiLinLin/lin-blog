@@ -247,6 +247,16 @@
         {{ partial('_partials/post/post-footer.swig', {}, {cache: theme.cache.enable}) }}
 
         {{ post_nav(post) }}
+
+        <div id="vcomments" style="margin-top: 50px;"></div>
+        <!--<script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+        <script>
+            new Valine({
+                el: '#vcomments',
+                appId: 'FeMqLaMaighHca1nRDNMoOcq-gzGzoHsz',
+                appKey: 'Ep4VGUeVVQIxF2nbIxdqUi8N'
+            })
+        </script>-->
       </footer>
     {% else %}
       <footer class="post-footer">
