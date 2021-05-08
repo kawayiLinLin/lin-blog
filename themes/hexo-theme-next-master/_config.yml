@@ -253,8 +253,8 @@ symbols_count_time:
   separated_meta: true
   item_text_post: true
   item_text_total: false
-  awl: 4
-  wpm: 275
+  awl: 2 # 平均字长 ZN 2 EN 5 DEFAULT 4
+  wpm: 275 # 一分钟阅读的字数 
 
 # Use icon instead of the symbol # to indicate the tag at the bottom of the post
 tag_icon: false
