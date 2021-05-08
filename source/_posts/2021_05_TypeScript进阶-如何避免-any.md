@@ -7,3 +7,5 @@ category:
 tags:
 - TypeScript
 ---
+
+## 为什么会出现 any
