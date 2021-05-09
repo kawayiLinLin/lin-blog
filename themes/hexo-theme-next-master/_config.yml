@@ -17,7 +17,7 @@ cache:
   enable: true
 
 # Remove unnecessary files after hexo generate.
-minify: false
+minify: true
 
 # Define custom file paths.
 # Create your custom files in site directory `source/_data` and uncomment needed files below.
@@ -39,11 +39,12 @@ custom_file_path:
 # See: https://theme-next.org/docs/getting-started/
 # ---------------------------------------------------------------
 
+# 网站图标
 favicon:
-  small: /images/favicon-16x16-next.png
-  medium: /images/favicon-32x32-next.png
-  apple_touch_icon: /images/apple-touch-icon-next.png
-  safari_pinned_tab: /images/logo.svg
+  small: /images/favicon.ico
+  medium: /images/favicon.ico
+  apple_touch_icon: /images/favicon.ico
+  safari_pinned_tab: /images/favicon.ico
   #android_manifest: /images/manifest.json
   #ms_browserconfig: /images/browserconfig.xml
 
@@ -64,7 +65,7 @@ footer:
     color: "#ff0000"
 
   # If not defined, `author` from Hexo `_config.yml` will be used.
-  copyright: YZL
+  copyright: Yzl
 
   # Powered by Hexo & NexT
   powered: false
@@ -103,7 +104,7 @@ scheme: Pisces
 #scheme: Gemini
 
 # Dark Mode
-darkmode: false
+darkmode: true
 
 
 # ---------------------------------------------------------------
@@ -164,9 +165,9 @@ sidebar:
 # Sidebar Avatar
 avatar:
   # Replace the default image and set the url here.
-  url: #/images/avatar.gif
+  url: images/luffy.jpg
   # If true, the avatar will be dispalyed in circle.
-  rounded: false
+  rounded: true
   # If true, the avatar will be rotated with the cursor.
   rotated: false
 
@@ -179,7 +180,7 @@ site_state: true
 # Value before `||` delimiter is the target permalink, value after `||` delimiter is the name of Font Awesome icon.
 social:
   #GitHub: https://github.com/yourname || fab fa-github
-  #E-Mail: mailto:yourname@gmail.com || fa fa-envelope
+  E-Mail: mailto:1936635053@qq.com || fa fa-envelope
   #Weibo: https://weibo.com/yourname || fab fa-weibo
   #Google: https://plus.google.com/yourname || fab fa-google
   #Twitter: https://twitter.com/yourname || fab fa-twitter
@@ -192,17 +193,21 @@ social:
 social_icons:
   enable: true
   icons_only: false
-  transition: false
+  transition: true
 
+# 链接
 # Blog rolls
 links_settings:
   icon: fa fa-link
   title: Links
   # Available values: block | inline
-  layout: block
+  layout: inline
 
 links:
-  #Title: http://yoursite.com
+  旧博客: http://yzl.xyz/blog
+  微信聊天室: http://yzl.xyz:3112
+  Markdown: http://yzl.xyz:226/markdownonline
+  LeanCloud: https://console.leancloud.cn
 
 # Table of Contents in the Sidebar
 # Front-matter variable (unsupport wrap expand_all).
@@ -235,10 +240,12 @@ chat:
 # Automatically excerpt description in homepage as preamble text.
 excerpt_description: true
 
+# 阅读更多按钮
 # Read more button
 # If true, the read more button will be displayed in excerpt section.
 read_more_btn: true
 
+# 文章标题下部基础信息
 # Post meta display settings
 post_meta:
   item_text: true
@@ -248,6 +255,7 @@ post_meta:
     another_day: true
   categories: true
 
+# 阅读时长统计
 # Post wordcount display settings
 # Dependencies: https://github.com/theme-next/hexo-symbols-count-time
 symbols_count_time:
@@ -257,9 +265,11 @@ symbols_count_time:
   awl: 2 # 平均字长 ZN 2 EN 5 DEFAULT 4
   wpm: 275 # 一分钟阅读的字数 
 
+# 底部标签的图标是否展示，或展示 # 号
 # Use icon instead of the symbol # to indicate the tag at the bottom of the post
-tag_icon: false
+tag_icon: true
 
+# 打赏开关
 # Reward (Donate)
 # Front-matter variable (unsupport animation).
 reward_settings:
@@ -519,7 +529,7 @@ pjax: false
 
 # FancyBox is a tool that offers a nice and elegant way to add zooming functionality for images.
 # For more information: https://fancyapps.com/fancybox
-fancybox: false
+fancybox: true
 
 # 图片点击居中预览
 # A JavaScript library for zooming images like Medium.
