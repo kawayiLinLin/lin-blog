@@ -81,6 +81,9 @@
       {%- set sidebarURL = link.split('||')[0] | trim %}
       {%- if theme.social_icons.enable %}
         {%- set sidebarIcon = '<i class="' + link.split('||')[1] | trim + ' fa-fw"></i>' %}
+        {%- if link.split('||')[1] and link.split('||')[1].includes('.')  %}
+          {%- set sidebarIcon = '<img style="display: inline;vertical-align: middle;margin-right: 2px;" src="' + url_for(link.split('||')[1] | trim) + '" alt="' + name + '"></i>' %}
+        {%- endif %}
       {%- else %}
         {%- set sidebarIcon = '' %}
       {%- endif %}
