@@ -375,7 +375,7 @@ codeblock:
     # Show text copy result.
     show_result: true
     # Available values: default | flat | mac
-    style: flat
+    style: mac
 
 back2top:
   enable: true
