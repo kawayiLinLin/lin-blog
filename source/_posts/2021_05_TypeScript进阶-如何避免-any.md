@@ -36,7 +36,7 @@ tags:
 
 常常能见到这样的写法
 
-```Typescript
+```typescript
 (<any>window).obj = {}
 // 或
 (window as any).obj = {}
