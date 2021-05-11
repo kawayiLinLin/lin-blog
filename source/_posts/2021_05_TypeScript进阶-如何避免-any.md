@@ -32,7 +32,7 @@ tags:
 
 ## TS 容易出现 `any` 的场景梳理
 
-## 给 window 全局对象增加属性
+### 给 window 全局对象增加属性
 
 常常能见到这样的写法
 
@@ -45,3 +45,20 @@ tags:
 这样做，在使用时和赋值时都需要断言一次，非常麻烦，并且使用时也不能得到代码提示
 
 正确的做法应该是
+
+1. 在项目全局的 `xxx.d.ts` 文件中配置如下代码
+
+```typescript
+interface Window {
+    obj: {}
+}
+```
+
+2. 在需要给 window 赋值的文件目录下级新建一个 `@types` 文件夹，并在其中新建 `index.d.ts` 文件，添加如下代码
+
+```typescript
+interface Window {
+    obj: {}
+}
+```
+方法2也会在全局的 window 上增加 obj 这一声明，所以更推荐用方法1，方法1也能一眼看出项目中 window 中添加了什么属性
