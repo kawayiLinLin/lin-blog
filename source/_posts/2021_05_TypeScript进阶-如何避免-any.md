@@ -163,15 +163,15 @@ if (obj.a === 1) {
 如果我们把这样的方法应用到函数（也可以用重载实现）传参或组件传参，有意思的是它还能限定传参的范围，
 函数组件实现：
 
-![](funciton-components-params-1.png)
+![](function-components-params-1.png)
 
 错误的传参，`a` 与 `b` 的类型不匹配，校验不通过
 
-![](funciton-components-params-2.png)
+![](function-components-params-2.png)
 
 正确的传参，校验能通过
 
-![](funciton-components-params-3.png)
+![](function-components-params-3.png)
 
 注意：你不能将 `props` 解构出来，会导致两者的关系丢失
 
