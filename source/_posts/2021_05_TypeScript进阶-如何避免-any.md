@@ -96,7 +96,7 @@ const a = {
 const b = a?.c?.d
 ```
 
-会被编译为如下 js 代码
+会被编译为如下 js 代码（ [babel 在线编译网站](https://www.babeljs.cn/repl) ）
 
 ```js
 "use strict"
@@ -186,3 +186,66 @@ const { a, b } = props // 错误，a 和 b 的类型关系丢失
 在 `typescript` 中，常用的类型保护为 `typeof` 、`instanceof`、和 `in` 关键字
 掌握上述关键字较为容易，可通过文档了解
 还有一个关键字 `is` （类型谓词）是 `typescript` 提供的，是另一种“类型保护”（这种说法助于理解）
+
+类型谓词能让我们通过函数的形式做出复杂的类型检验的逻辑，一个使用类型谓词的函数的声明往往是如下形式：
+
+```ts
+type X = xxxx // 某种类型
+function check(params): params is X
+```
+
+理解起来就是如果 `check` 函数返回了真值，则参数 params 是 X 类型，否则不一定是 X 类型
+
+设想一下如下场景，某个项目，既可能运行在微信网页中，也可能运行在其他 webview 中
+
+在微信网页中，微信客户端向 window 对象中注入了各种 native 方法，使用它的方式就是 `window.wx.xxxx()`
+
+在其他 webview 中，我们假设也有这样的 native 方法，并且使用它的方式为 `window.webviewnative.xxxx()`
+
+在 typescript 项目中，window 对象上并不会默认存在 wx 和 webviewnative 两个属性，参考 [给 window 全局对象增加属性](#给-window-全局对象增加属性)，我们能显示地为 wx 和 webviewnative 两个属性定义类型：
+
+```ts
+interface Window {
+    wx?: {
+        xxxx: Function
+    }
+    webviewnative?: {
+        xxxx: Function
+    }
+}
+```
+
+如果你不会这样做，那可能又会写成断言为 any：`(window as any).wx.xxxx()`
+
+可以看到在上面的代码段中两个属性都被我定义为了可选属性，目的是为了在后续维护（迭代）中，防止不做判断直接链式调用
+
+在微信环境中 window.wx 一定存在，但 webviewnative 一定不存在，反之在其他的 webview 中，（见前文假设）window.webviewnative 一定存在
+
+在接口 `interface` 中，我们并不能动态的知晓和定义到底哪个存在
+
+你可以这样写
+
+```ts
+if (typeof window.wx !== 'undefined') {
+    window.wx.xxxx()
+} else {
+    // not in wx
+}
+```
+
+但是直接在 if 中写这样的表达式太过局限，或者 有很多方式都能判断是在微信环境中，会导致项目中充斥着五花八门的判断，类型谓词的好处就出来了
+
+```ts
+function checkIsWxNativeAPICanUse(win: Window): win is { wx: Exclude<Window['wx'], undefined> } & Window {
+    return typeof window.wx !== 'undefined'
+}
+// 使用
+if (checkIsWxNativeAPICanUse(window)) {
+    window.wx.xxxx()
+}
+```
+
+
+## 总结
+
+非必要少使用 any 既是良好的 ts 代码习惯的养成，也是对自己代码质量的较真
