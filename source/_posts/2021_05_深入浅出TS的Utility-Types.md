@@ -61,13 +61,15 @@ type NewType = { [K in OldType]: NewResultType }
 
 ![](key-mapping-type-example.jpg)
 
-它包含 5 个部分
+它大致包含 5 个部分
 
 1.红色区域：用于承载它的类型别名
 2.白色区域：变量**K**(或者其他别名)，它会被依次绑定到联合类型的每个属性
 3.蓝色区域：**in** 关键字
 4.橙色区域：由 number、symbol 或 string 的字面量组成的**联合类型**，它包含了要迭代的属性名的集合，也可能直接是 number、symbol 或 string 三种类型，当然这种写法与 `{ [key: string]: ResultType }` 的写法相同
 5.粉色区域：属性的结果类型
+
+> TS 4.1 以上可以在橙色区域后写 as 操作符重新映射映射类型中的键，它的作用目标是白色区域的键
 
 假如在上述代码中，OldType 为 `type OldType = "key1" | "key2"`，那么 NewType 等同于
 
