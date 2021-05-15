@@ -1,0 +1,2 @@
+*.styl linguist-language=javascript
+*.md linguist-language=javascript

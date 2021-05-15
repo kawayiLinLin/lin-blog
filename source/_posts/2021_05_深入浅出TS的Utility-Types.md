@@ -20,20 +20,20 @@ TS 内置的 [实用类型](https://www.typescriptlang.org/docs/handbook/utility
 
 ### Partial
 
-*将传入的 T 类型所有属性置为可选*
+_将传入的 T 类型所有属性置为可选_
 
-+ 源码
+- 源码
 
 ```ts
 /**
  * Make all properties in T optional
  */
 type Partial<T> = {
-    [P in keyof T]?: T[P];
+  [P in keyof T]?: T[P];
 };
 ```
 
-+ 源码解析
+- 源码解析
 
 Partial 仅接收一个泛型参数 T，
 
@@ -43,9 +43,9 @@ Partial 仅接收一个泛型参数 T，
 
 ```ts
 interface Dogs {
-    dogName: string
-    dogAge: number
-    dogKind: string
+  dogName: string
+  dogAge: number
+  dogKind: string
 }
 type DogsKey = keyof Dogs // 等同于 type DogsKey = "dogName" | "dogAge" | "dogKind"
 ```
@@ -63,11 +63,7 @@ type NewType = { [K in OldType]: NewResultType }
 
 它大致包含 5 个部分
 
-1.红色区域：用于承载它的类型别名
-2.白色区域：变量 `K` (或者其他别名)，它会被依次绑定到联合类型的每个属性
-3.蓝色区域：`in` 关键字
-4.橙色区域：由 number、symbol 或 string 的字面量组成的 `联合类型`，它包含了要迭代的属性名的集合，也可能直接是 number、symbol 或 string 三种类型，当然这种写法与 `{ [key: string]: ResultType }` 的写法相同
-5.粉色区域：属性的结果类型
+1.红色区域：用于承载它的类型别名 2.白色区域：变量 `K` (或者其他别名)，它会被依次绑定到联合类型的每个属性 3.蓝色区域：`in` 关键字 4.橙色区域：由 number、symbol 或 string 的字面量组成的 `联合类型`，它包含了要迭代的属性名的集合，也可能直接是 number、symbol 或 string 三种类型，当然这种写法与 `{ [key: string]: ResultType }` 的写法相同 5.粉色区域：属性的结果类型
 
 > TS 4.1 以上可以在橙色区域后使用 as 操作符重新映射映射类型中的键，它的作用目标是白色区域的键
 
@@ -75,9 +71,9 @@ type NewType = { [K in OldType]: NewResultType }
 
 ```ts
 type NewType = {
-    key1: NewResultType
-    key2: NewResultType
-}
+  key1: NewResultType
+  key2: NewResultType
+};
 ```
 
 你可以在 TS 官网中看到类似的例子。
@@ -94,17 +90,17 @@ type MapedType = {
 
 ```ts
 type MapedType = {
-    [key in OldType]?: NewResultType // 正确的写法
-}
+  [key in OldType]?: NewResultType // 正确的写法
+};
 ```
 
 上面的代码会得到一个这样的类型
 
 ```ts
 type NewType = {
-    key1?: NewResultType | undefined
-    key2?: NewResultType | undefined
-}
+  key1?: NewResultType | undefined
+  key2?: NewResultType | undefined
+};
 ```
 
 再来看属性的结果类型，源码中对结果的处理是这样的：`T[P]`，也就是[索引访问](https://www.typescriptlang.org/docs/handbook/2/indexed-access-types.html)
@@ -113,12 +109,12 @@ type NewType = {
 
 ```ts
 interface Dogs {
-    dogName: string
-    dogAge: number
-    dogKind: string
+  dogName: string
+  dogAge: number
+  dogKind: string
 }
 
-type DogName = Dogs["dogName"] // 得到 string 类型
+type DogName = Dogs["dogName"]; // 得到 string 类型
 ```
 
 如果字符串 `"dogName"` 代表一个字面量类型，那么下面的这种写法就与 `T[P]` 是相似的
@@ -132,7 +128,27 @@ type DogName = Dogs[DogNameKey]
 
 而 `T` 是原始的（被传入的）索引类型，`T[P]` 也就访问到了 `P` 索引对应的具体的类型了
 
-+ 使用场景
+- 使用场景
 
-对象的扩展运算符
+  1. 对象的扩展运算符，比如我们实现基于 `useReducer` 实现一个简单的 "`setState`"
 
+  ```ts
+  type State = {
+    loading: boolean
+    list: Array<any>
+    page: number
+  };
+  const [state, setState] = useReducer(
+    (state: State, nextState: Partial<State>) => {
+      return { ...state, ...nextState }
+    },
+    {
+      loading: false,
+      list: [],
+      page: 0,
+    }
+  )
+  // 使用
+  setState({ page: 1 })
+  ```
+  上面的代码中 nextState 被传入后，会与原 state 做合并操作，nextState 并不需要含有 State 类型的所有键，故使用 Partial 进行类型的定义
