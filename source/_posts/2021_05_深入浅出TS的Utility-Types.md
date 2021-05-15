@@ -132,23 +132,23 @@ type DogName = Dogs[DogNameKey]
 
   1. 对象的扩展运算符，比如我们实现基于 `useReducer` 实现一个简单的 "`setState`"
 
-  ```ts
-  type State = {
-    loading: boolean
-    list: Array<any>
-    page: number
-  };
-  const [state, setState] = useReducer(
-    (state: State, nextState: Partial<State>) => {
-      return { ...state, ...nextState }
-    },
-    {
-      loading: false,
-      list: [],
-      page: 0,
-    }
-  )
-  // 使用
-  setState({ page: 1 })
-  ```
+```ts
+type State = {
+ loading: boolean
+ list: Array<any>
+ page: number
+};
+const [state, setState] = useReducer(
+ (state: State, nextState: Partial<State>) => {
+   return { ...state, ...nextState }
+ },
+ {
+   loading: false,
+   list: [],
+   page: 0,
+ }
+)
+// 使用
+setState({ page: 1 })
+```
   上面的代码中 nextState 被传入后，会与原 state 做合并操作，nextState 并不需要含有 State 类型的所有键，故使用 Partial 进行类型的定义
