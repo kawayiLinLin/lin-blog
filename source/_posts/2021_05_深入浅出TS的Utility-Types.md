@@ -64,12 +64,12 @@ type NewType = { [K in OldType]: NewResultType }
 它大致包含 5 个部分
 
 1.红色区域：用于承载它的类型别名
-2.白色区域：变量**K**(或者其他别名)，它会被依次绑定到联合类型的每个属性
-3.蓝色区域：**in** 关键字
-4.橙色区域：由 number、symbol 或 string 的字面量组成的**联合类型**，它包含了要迭代的属性名的集合，也可能直接是 number、symbol 或 string 三种类型，当然这种写法与 `{ [key: string]: ResultType }` 的写法相同
+2.白色区域：变量 `K` (或者其他别名)，它会被依次绑定到联合类型的每个属性
+3.蓝色区域：`in` 关键字
+4.橙色区域：由 number、symbol 或 string 的字面量组成的 `联合类型`，它包含了要迭代的属性名的集合，也可能直接是 number、symbol 或 string 三种类型，当然这种写法与 `{ [key: string]: ResultType }` 的写法相同
 5.粉色区域：属性的结果类型
 
-> TS 4.1 以上可以在橙色区域后写 as 操作符重新映射映射类型中的键，它的作用目标是白色区域的键
+> TS 4.1 以上可以在橙色区域后使用 as 操作符重新映射映射类型中的键，它的作用目标是白色区域的键
 
 假如在上述代码中，OldType 为 `type OldType = "key1" | "key2"`，那么 NewType 等同于
 
@@ -80,4 +80,59 @@ type NewType = {
 }
 ```
 
-你可以在 TS 官网中看到类似的例子
+你可以在 TS 官网中看到类似的例子。
+
+在索引类型中，这样的写法([属性修饰符](https://www.typescriptlang.org/docs/handbook/2/objects.html#property-modifiers)：`?`)是不行的
+
+```ts
+type MapedType = {
+    [key: string]?: string // 错误的写法
+}
+```
+
+但在映射类型中，`?` 的写法是可以的
+
+```ts
+type MapedType = {
+    [key in OldType]?: NewResultType // 正确的写法
+}
+```
+
+上面的代码会得到一个这样的类型
+
+```ts
+type NewType = {
+    key1?: NewResultType | undefined
+    key2?: NewResultType | undefined
+}
+```
+
+再来看属性的结果类型，源码中对结果的处理是这样的：`T[P]`，也就是[索引访问](https://www.typescriptlang.org/docs/handbook/2/indexed-access-types.html)
+
+索引访问能通过索引访问到其对应的具体类型，举例：
+
+```ts
+interface Dogs {
+    dogName: string
+    dogAge: number
+    dogKind: string
+}
+
+type DogName = Dogs["dogName"] // 得到 string 类型
+```
+
+如果字符串 `"dogName"` 代表一个字面量类型，那么下面的这种写法就与 `T[P]` 是相似的
+
+```ts
+type DogNameKey = "dogName"
+type DogName = Dogs[DogNameKey]
+```
+
+对于源码的 `[P in keyof T]` 部分中的 `P`，在 `in` 操作符的作用下会是联合类型中的某一个具体的字面量类型
+
+而 `T` 是原始的（被传入的）索引类型，`T[P]` 也就访问到了 `P` 索引对应的具体的类型了
+
++ 使用场景
+
+对象的扩展运算符
+
