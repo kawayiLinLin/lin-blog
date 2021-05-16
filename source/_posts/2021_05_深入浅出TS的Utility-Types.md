@@ -50,7 +50,7 @@ interface Dogs {
 type DogsKey = keyof Dogs // 等同于 type DogsKey = "dogName" | "dogAge" | "dogKind"
 ```
 
-`in` 关键字是理解这段源码的关键，TS 的官方文档中，给出了[定义](typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#key-remapping-in-mapped-types)：`key remapping in mapped types`，也就是映射类型
+`in` 关键字是理解这段源码的关键，TS 的官方文档中，给出了[定义](typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#key-remapping-in-mapped-types)：`key remapping in mapped types`，也就是[映射类型](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html)
 
 它的语法往往是如下形式：
 
@@ -63,9 +63,17 @@ type NewType = { [K in OldType]: NewResultType }
 
 它大致包含 5 个部分
 
-1.红色区域：用于承载它的类型别名 2.白色区域：变量 `K` (或者其他别名)，它会被依次绑定到联合类型的每个属性 3.蓝色区域：`in` 关键字 4.橙色区域：由 number、symbol 或 string 的字面量组成的 `联合类型`，它包含了要迭代的属性名的集合，也可能直接是 number、symbol 或 string 三种类型，当然这种写法与 `{ [key: string]: ResultType }` 的写法相同 5.粉色区域：属性的结果类型
+1.红色区域：用于承载它的类型别名 
 
-> TS 4.1 以上可以在橙色区域后使用 as 操作符重新映射映射类型中的键，它的作用目标是白色区域的键
+2.白色区域：变量 `K` (或者其他别名)，它会被依次绑定到联合类型的每个属性 
+
+3.蓝色区域：`in` 关键字 
+
+4.橙色区域：由 number、symbol 或 string 的字面量组成的 `联合类型`，它包含了要迭代的属性名的集合，也可能直接是 number、symbol 或 string 三种类型，当然这种写法与 `{ [key: string]: ResultType }` 的写法相同 
+
+5.粉色区域：属性的结果类型
+
+> TS 4.1 以上可以在橙色区域后使用 as 操作符重新映射映射类型中的键，它的作用目标是白色区域的键；除了这 5 个部分，下文中还会提到属性修饰符 readonly 和 ?
 
 假如在上述代码中，OldType 为 `type OldType = "key1" | "key2"`，那么 NewType 等同于
 
@@ -132,23 +140,213 @@ type DogName = Dogs[DogNameKey]
 
   1. 对象的扩展运算符，比如我们实现基于 `useReducer` 实现一个简单的 "`setState`"
 
-```ts
-type State = {
- loading: boolean
- list: Array<any>
- page: number
-};
-const [state, setState] = useReducer(
- (state: State, nextState: Partial<State>) => {
-   return { ...state, ...nextState }
- },
- {
-   loading: false,
-   list: [],
-   page: 0,
- }
-)
-// 使用
-setState({ page: 1 })
-```
+  ```ts
+  type State = {
+   loading: boolean
+   list: Array<any>
+   page: number
+  };
+  const [state, setState] = useReducer(
+   (state: State, nextState: Partial<State>) => {
+     return { ...state, ...nextState }
+   },
+   {
+     loading: false,
+     list: [],
+     page: 0,
+   }
+  )
+  // 使用
+  setState({ page: 1 })
+  ```
+
   上面的代码中 nextState 被传入后，会与原 state 做合并操作，nextState 并不需要含有 State 类型的所有键，故使用 Partial 进行类型的定义
+
+  2. 都是非必传参但使用参数时如果没有传则会初始化参数
+
+  ```ts
+  interface Params {
+    param1: string
+    param2: number
+    param3: Array<string>
+  };
+  function testFunction(params: Partial<Params>) {
+    const requiredParams: Params = {
+     param1: params.param1 ?? '',
+     param2: params.param2 ?? 0,
+     param3: params.param3 ?? []
+    }
+    return requiredParams
+  }
+  ```
+
+### Required
+
+*让所有属性都变成必选的*
+
+- 源码
+
+```ts
+/**
+ * Make all properties in T required
+ */
+type Required<T> = {
+    [P in keyof T]-?: T[P];
+};
+```
+
+- 源码解析
+
+TS 在 2.8 版本改进了对[映射类型修饰符的控制](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-8.html#improved-control-over-mapped-type-modifiers)，[映射修饰符-文档](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#mapping-modifiers)
+
+在这个版本以后，可以通过在映射类型的属性修饰符（`readonly` 或 `?`）前面增加 `-` 或 `+` 前缀，表示应删除或添加该修饰符，也就是上一章节中的 `Partial` 也的实现也可以长这样
+
+```ts
+type Partial<T> = {
+  [P in keyof T]+?: T[P];
+};
+```
+
+也就是说 `-?` 的写法会去除可选属性这一属性修饰符，达到让每个属性都变为必选的目的
+
+同时依据文档描述，`--strictNullChecks` 模式下，如果属性是包含了 undefined 的联合类型，那么 `Required` 也会将 undefined 移除
+
+```ts
+interface TestNullCheck {
+  // 如果没有 number 类型，仅有 undefined 类型，则会保留 undefined
+  testParam?: number | undefined
+}
+
+type Test = Required<TestNullCheck> // 得到 { testParam: number }
+```
+
+- 使用场景
+
+与 `Partial` 相反的场景
+
+### ReadOnly
+
+*将所有属性变为只读*
+
+- 源码
+
+```ts
+/**
+ * Make all properties in T readonly
+ */
+type Readonly<T> = {
+    readonly [P in keyof T]: T[P];
+};
+```
+
+- 源码解析
+
+与 `Partial` 和 `Required` 的实现基本相同，不同的是它的属性修饰符为 [readonly](https://www.typescriptlang.org/docs/handbook/2/objects.html#readonly-properties)，无修饰符前缀
+
+`readonly` 修饰符会让被修饰的属性变为只读的（不能重写re-written），但不能作用于该属性的子属性
+
+- 使用场景
+
+  1. 参考 Object.freeze 的声明
+  2. 某些项目中定义的常量，防止在后续维护中，不小心在其他位置做了修改，可以使用 `Readonly`
+
+### Pick
+
+*从 T 类型选择一组属性生成新的类型*
+
+- 源码
+
+```ts
+/**
+ * From T, pick a set of properties whose keys are in the union K
+ */
+type Pick<T, K extends keyof T> = {
+    [P in K]: T[P];
+};
+```
+
+- 源码解析
+
+使用 `Pick` 的时候，需要传递两个泛型参数，第一个参数为一个[对象类型](https://www.typescriptlang.org/docs/handbook/2/objects.html)（或映射类型），第二个参数为第一个参数的索引（属性）组成的联合类型（或单个字面量类型），`Pick` 生成的新类型中，属性为第二个参数中的联合类型
+
+示例：
+
+```ts
+interface Dogs {
+  dogName: string
+  dogAge: number
+  dogKind: string
+}
+// 联合类型
+type NameAndAge = Pick<Dogs, "dogName" | "dogAge"> // { dogName: string; dogAge: number }
+
+// 单个字符串类型
+type DogKind = Pick<Dogs, "dogKind"> // { dogName: string; dogAge: number }
+```
+
+在 `Pick` 的实现中，引入了新的语法，泛型（自行查阅[文档](https://www.typescriptlang.org/docs/handbook/2/generics.html)）、[extends](https://www.typescriptlang.org/docs/handbook/2/generics.html#generic-constraints)
+
+`extends` 在 TS 中，不同的位置使用有不同的含义，在这里是约束（Generic Constraints）的含义，extends 左侧类型一定要满足可赋值给右侧类型
+
+`keyof T` 的写法在前文中已经讲到（另外泛型参数中，靠后的参数的 extends 子句能使用靠前参数的类型别名），T 是一个对象类型，那么 `keyof T` 是一个由 string 或 number （没有 symbol）组成的联合类型，因此 `K` 是 `T` 的所有属性名构成的联合类型的子类型
+
+`in` 映射类型可参考 `Partial` 章节，在 `Pick` 中，`K` 会被迭代，`P` 是在每次迭代中都是某个字面量类型，也是 `T` 的某一个属性名，通过索引访问 `T[P]` 能得到该属性名对应的具体类型，最后 `Pick` 得到一个新的对象类型
+
+- 使用场景
+
+  1. 某个位置需要全部的属性，其他位置仅需要部分属性的情况
+  2. 参考 lodash.pick 的声明和实现
+
+## 非内置可自行实现的 Utility Types
+
+**下面的哪些工具类型你用过？你自己还写过哪些工具类型呢？评论区分享一下吧**
+
+### ReadonlyPartial
+
+```ts
+type ReadonlyPartial<T> = {
+  readonly [P in keyof T]?: T[P]
+}
+```
+
+### ReadWrite
+
+```ts
+type ReadWrite<T> = {
+  -readonly [P in keyof T]: T[P] 
+}
+```
+
+### GetPromiseType
+
+*提取 Promise 的泛型参数*
+
+```ts
+type GetPromiseType<P extends unknown> = P extends Promise<
+  infer Params
+>
+  ? Params
+  : never
+```
+
+可以与 `ReturnType` 结合使用，提取异步函数的返回值
+
+### ChangeRecordType
+
+*将对象中所有属性都设置为 T，第一个参数是 keyof object，如果没有第二个参数，则将所有属性值转为 undefined*
+
+```ts
+type ChangeRecordType<K extends string | number | symbol, T = undefined> = {
+    [P in K]?: T
+}
+```
+
+### Values
+
+*生成传入类型每个值的联合类型，参考 Object.values*
+
+```ts
+type Values<T> = T[keyof T]
+```
+
+[分布式条件类型](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-8.html)
