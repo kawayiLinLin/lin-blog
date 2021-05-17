@@ -140,44 +140,44 @@ type DogName = Dogs[DogNameKey]
 
   1. 对象的扩展运算符，比如我们实现基于 `useReducer` 实现一个简单的 "`setState`"
 
-  ```ts
-  type State = {
-   loading: boolean
-   list: Array<any>
-   page: number
-  };
-  const [state, setState] = useReducer(
-   (state: State, nextState: Partial<State>) => {
-     return { ...state, ...nextState }
-   },
-   {
-     loading: false,
-     list: [],
-     page: 0,
-   }
-  )
-  // 使用
-  setState({ page: 1 })
-  ```
+```ts
+type State = {
+loading: boolean
+list: Array<any>
+page: number
+};
+const [state, setState] = useReducer(
+(state: State, nextState: Partial<State>) => {
+  return { ...state, ...nextState }
+},
+{
+  loading: false,
+  list: [],
+  page: 0,
+}
+)
+// 使用
+setState({ page: 1 })
+```
 
   上面的代码中 nextState 被传入后，会与原 state 做合并操作，nextState 并不需要含有 State 类型的所有键，故使用 Partial 进行类型的定义
 
   2. 都是非必传参但使用参数时如果没有传则会初始化参数
 
-  ```ts
-  interface Params {
-    param1: string
-    param2: number
-    param3: Array<string>
-  };
-  function testFunction(params: Partial<Params>) {
-    const requiredParams: Params = {
-     param1: params.param1 ?? '',
-     param2: params.param2 ?? 0,
-     param3: params.param3 ?? []
-    }
-    return requiredParams
-  }
+```ts
+interface Params {
+ param1: string
+ param2: number
+ param3: Array<string>
+};
+function testFunction(params: Partial<Params>) {
+ const requiredParams: Params = {
+  param1: params.param1 ?? '',
+  param2: params.param2 ?? 0,
+  param3: params.param3 ?? []
+ }
+ return requiredParams
+}
   ```
 
 ### Required
@@ -281,7 +281,7 @@ interface Dogs {
 type NameAndAge = Pick<Dogs, "dogName" | "dogAge"> // { dogName: string; dogAge: number }
 
 // 单个字符串类型
-type DogKind = Pick<Dogs, "dogKind"> // { dogName: string; dogAge: number }
+type DogKind = Pick<Dogs, "dogKind"> // { dogKind: string; }
 ```
 
 在 `Pick` 的实现中，引入了新的语法，泛型（自行查阅[文档](https://www.typescriptlang.org/docs/handbook/2/generics.html)）、[extends](https://www.typescriptlang.org/docs/handbook/2/generics.html#generic-constraints)
@@ -368,22 +368,23 @@ type J = symbol | 1
 
     1. 通过 Record 构造索引类型 `Record<string, string>` 得到 `{ [key: string]: string }`
     2. 在策略模式中使用
-    ```ts
-    type DogsRecord = Record<"dogKind1" | "dogKind2", (currentAge: number) => number>;
-    function getRestAgeByCurrentAgeAndKinds(kind: "dogKind1" | "dogKind2", currentAge: number) {
-        // 计算不同类型的狗的可能的剩余年龄
-        const dogsRestAge: DogsRecord = {
-            dogKind1: function(currentAge: number) {
-                return 20 - currentAge
-            },
-            dogKind2: function(currentAge: number) {
-                return 15 - currentAge
-            }
-        }
-        return dogsRestAge[kind](currentAge)
-    }
-    getRestAgeByCurrentAgeAndKinds("dogKind1", 1)
-    ```
+
+ ```ts
+ type DogsRecord = Record<"dogKind1" | "dogKind2", (currentAge: number) => number>;
+ function getRestAgeByCurrentAgeAndKinds(kind: "dogKind1" | "dogKind2", currentAge: number) {
+     // 计算不同类型的狗的可能的剩余年龄
+     const dogsRestAge: DogsRecord = {
+         dogKind1: function(currentAge: number) {
+             return 20 - currentAge
+         },
+         dogKind2: function(currentAge: number) {
+             return 15 - currentAge
+         }
+     }
+     return dogsRestAge[kind](currentAge)
+ }
+ getRestAgeByCurrentAgeAndKinds("dogKind1", 1)
+ ```
 
 ### Exclude
 
@@ -398,9 +399,45 @@ type J = symbol | 1
 type Exclude<T, U> = T extends U ? never : T;
 ```
 
+- 源码解析
+
+使用 Exclude 的例子
+
+```ts
+interface Dogs {
+  dogName: string
+  dogAge: number
+  dogKind: string
+}
+
+type KeyofDogs = keyof Dogs // "dogName" | "dogAge" | "dogKind"
+
+type KeysWithoutKind = Exclude<KeyofDogs, "dogKind"> // "dogName" | "dogAge"
+```
+
 在 `Exclude` 的源码中，引入了新的语法，[条件类型 Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html)
 
-条件类型的 extends 与在 泛型中的 extends 含义不同，后者代表的是约束，而前者是判断（可分配），判断 extends 左侧类型是否可分配给右侧类型，如果可以
+条件类型的 extends 与在 泛型中的 extends 含义不同，后者代表的是约束，而前者是判断（可分配），判断 extends 左侧类型是否可分配给右侧类型，如果可以则是冒号左边的类型，否则为右边的类型（与 js 的 `true ? 1 : 2` 用法类似）
+
+在上面的例子中，你可能会想，`KeyofDogs` 并不能分配给 `"dogKind"` 类型，会得到 `T` 类型，也就是 `KeyofDogs` 类型本身，但实际的结果是 `"dogName" | "dogAge"`，从 `KeyofDogs` 中移除了 `"dogKind"` 类型
+
+从已有的条件我们并不能看出 Exclude 的原理是什么，TS 对条件类型有一种特殊情况，也就是[分布条件类型 Distributive Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types)，其定义是**当条件类型作用于泛型类型时，并且这个泛型类型是联合类型，那么它就是分布式条件类型**
+
+泛型类型很好理解，即 `type Example<T> = T` 中的 `T` 就是一个泛型类型
+
+源码中的 `T extends U ? never : T`， `T` 是一个泛型类型，同时这也是一个条件类型，满足分布条件类型的定义，会由联合类型 `T` 中的每个联合类型成员依次与 `extends` 右侧类型进行比对，上面代码中的 `KeyofDogs` 是一个联合类型，传入 `Exclude` 后，变为了一个泛型类型 `T`，`"dogName" | "dogAge" | "dogKind"` 会依次与 `"dogKind"` 进行比对，只有 `"dogKind"` 可以分配给 `"dogKind"`，但得到的类型为 `never`，其他两个无法分配给 `"dogKind"`，得到它们本身的字面量类型 `"dogName"` 和 `"dogAge"`，它们组成的联合类型 `"dogName" | "dogAge"` 就是最终的结果
+
+**其他场景：**
+
+如果 Exclude 第一个参数不是联合类型会怎么样？
+
+```ts
+type ExampleA = Exclude<1, 2> // 会走正常的条件类型，1 不能分配给 2，会得到第一个泛型参数的类型，也就是字面量类型 1
+
+type ExampleB = Exclude<{ 2: string }, 2> // 原理同上方注释，也是传入的第一个泛型参数的类型 { 2: string }
+```
+
+- 使用场景
 
 ## 非内置可自行实现的 Utility Types
 
@@ -453,5 +490,3 @@ type ChangeRecordType<K extends string | number | symbol, T = undefined> = {
 ```ts
 type Values<T> = T[keyof T]
 ```
-
-[分布式条件类型](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-8.html)

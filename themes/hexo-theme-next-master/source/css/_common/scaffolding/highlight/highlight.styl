@@ -73,10 +73,12 @@ code {
 
     pre {
       background: $highlight-gutter.bg-color;
-      color: $highlight-gutter.color;
       padding-left: 10px;
       padding-right: 10px;
       text-align: right;
+      .line {
+        color: #9e9e9e;
+      }
     }
   }
 
@@ -108,47 +110,87 @@ pre {
     text-shadow: none;
   }
   // For diff highlight
-  .deletion {
-    background: $highlight-deletion;
-  }
+  // .deletion {
+  //   background: $highlight-deletion;
+  // }
 
-  .addition {
-    background: $highlight-addition;
-  }
+  // .addition {
+  //   background: $highlight-addition;
+  // }
 
-  .meta {
-    color: $highlight-yellow;
-    disable-user-select();
-  }
+  // .meta {
+  //   color: $highlight-yellow;
+  //   disable-user-select();
+  // }
 
+  // .comment {
+  //   color: $highlight-comment;
+  // }
+
+  // .variable, .attribute, .tag, .name, .regexp, .ruby .constant, .xml .tag .title, .xml .pi, .xml .doctype, .html .doctype, .css .id, .css .class, .css .pseudo {
+  //   color: $highlight-red;
+  // }
+
+  // .number, .preprocessor, .built_in, .builtin-name, .literal, .params, .constant, .command {
+  //   color: $highlight-orange;
+  // }
+
+  // .ruby .class .title, .css .rules .attribute, .string, .symbol, .value, .inheritance, .header, .ruby .symbol, .xml .cdata, .special, .formula {
+  //   color: $highlight-green;
+  // }
+
+  // .title, .css .hexcolor {
+  //   color: $highlight-aqua;
+  // }
+
+  // .function, .python .decorator, .python .title, .ruby .function .title, .ruby .title .keyword, .perl .sub, .javascript .title, .coffeescript .title {
+  //   color: $highlight-blue;
+  // }
+
+  // .keyword, .javascript .function {
+  //   color: $highlight-purple;
+  // }
+  // .subst {
+  //   color: #e06c75;  
+  // }
+  .line {
+    color: #f8f8f2;
+  }
   .comment {
-    color: $highlight-comment;
+    color: #88846f;
   }
-
-  .variable, .attribute, .tag, .name, .regexp, .ruby .constant, .xml .tag .title, .xml .pi, .xml .doctype, .html .doctype, .css .id, .css .class, .css .pseudo {
-    color: $highlight-red;
+  .keyword {
+    color: #f92672;
   }
-
-  .number, .preprocessor, .built_in, .builtin-name, .literal, .params, .constant, .command {
-    color: $highlight-orange;
+  .built_in {
+    color: #66d9ef;
+    font-style: italic;
   }
-
-  .ruby .class .title, .css .rules .attribute, .string, .symbol, .value, .inheritance, .header, .ruby .symbol, .xml .cdata, .special, .formula {
-    color: $highlight-green;
+  .function {
+    color: #66d9ef;
   }
-
-  .title, .css .hexcolor {
-    color: $highlight-aqua;
+  .title {
+    color: #a6e22e;
   }
-
-  .function, .python .decorator, .python .title, .ruby .function .title, .ruby .title .keyword, .perl .sub, .javascript .title, .coffeescript .title {
-    color: $highlight-blue;
+  .params {
+    color: #fd971f;
   }
-
-  .keyword, .javascript .function {
-    color: $highlight-purple;
+  .string {
+    color: #e6db74;
   }
-  .subst {
-    color: #e06c75;  
+  .number {
+    color: #ae81ff;
+  }
+  .literal {
+    color: #66d9ef;
+    font-style: italic;
+  }
+  .tag {
+    .name {
+      color: #f92672;
+    }
+  }
+  .attr {
+    color: #a6e22e;
   }
 }
