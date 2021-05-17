@@ -125,7 +125,7 @@ interface Dogs {
 type DogName = Dogs["dogName"]; // 得到 string 类型
 ```
 
-如果字符串 `"dogName"` 代表一个字面量类型，那么下面的这种写法就与 `T[P]` 是相似的
+如果字符串 `"dogName"` 代表一个[字面量类型](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#literal-types)，那么下面的这种写法就与 `T[P]` 是相似的
 
 ```ts
 type DogNameKey = "dogName"
@@ -252,7 +252,7 @@ type Readonly<T> = {
 
 ### Pick
 
-*从 T 类型选择一组属性生成新的类型*
+*从 T 类型选择一组属性构造新的类型*
 
 - 源码
 
@@ -267,7 +267,7 @@ type Pick<T, K extends keyof T> = {
 
 - 源码解析
 
-使用 `Pick` 的时候，需要传递两个泛型参数，第一个参数为一个[对象类型](https://www.typescriptlang.org/docs/handbook/2/objects.html)（或映射类型），第二个参数为第一个参数的索引（属性）组成的联合类型（或单个字面量类型），`Pick` 生成的新类型中，属性为第二个参数中的联合类型
+使用 `Pick` 的时候，需要传递两个泛型参数，第一个参数为一个[对象类型](https://www.typescriptlang.org/docs/handbook/2/objects.html)（或映射类型），第二个参数为第一个参数的索引（属性）组成的联合类型（或单个字面量类型），`Pick` 构造的新类型中，属性为第二个参数中的联合类型
 
 示例：
 
@@ -286,7 +286,7 @@ type DogKind = Pick<Dogs, "dogKind"> // { dogName: string; dogAge: number }
 
 在 `Pick` 的实现中，引入了新的语法，泛型（自行查阅[文档](https://www.typescriptlang.org/docs/handbook/2/generics.html)）、[extends](https://www.typescriptlang.org/docs/handbook/2/generics.html#generic-constraints)
 
-`extends` 在 TS 中，不同的位置使用有不同的含义，在这里是约束（Generic Constraints）的含义，extends 左侧类型一定要满足可赋值给右侧类型
+`extends` 在 TS 中，不同的位置使用有不同的含义，在这里是约束（Generic Constraints）的含义，extends 左侧类型一定要满足可分配给右侧类型
 
 `keyof T` 的写法在前文中已经讲到（另外泛型参数中，靠后的参数的 extends 子句能使用靠前参数的类型别名），T 是一个对象类型，那么 `keyof T` 是一个由 string 或 number （没有 symbol）组成的联合类型，因此 `K` 是 `T` 的所有属性名构成的联合类型的子类型
 
@@ -294,8 +294,113 @@ type DogKind = Pick<Dogs, "dogKind"> // { dogName: string; dogAge: number }
 
 - 使用场景
 
-  1. 某个位置需要全部的属性，其他位置仅需要部分属性的情况
-  2. 参考 lodash.pick 的声明和实现
+  1. 某个位置需要全部的属性，其他位置仅需要部分属性的情况，如上文的 `Dogs` 例子
+  2. 参考 [lodash](https://lodash.com.cn/docs/chunk).pick 的声明和实现
+  3. 二次封装第三方组件，仅向外暴露部分参数的情况
+
+### Record
+
+- 源码
+
+*基于一个联合类型构造一个新类型，其属性键为 K，属性值为 T*
+
+```ts
+/**
+ * Construct a type with a set of properties K of type T
+ */
+type Record<K extends keyof any, T> = {
+    [P in K]: T;
+};
+```
+
+- 源码解析
+
+`Record` 源码的含义较为容易理解，即将 K 中的每个属性，都转为 T 类型
+
+使用起来就是
+
+```ts
+interface Dogs {
+  dogName: string
+  dogAge: number
+  dogKind: string
+}
+
+type KeyofDogs = keyof Dogs // "dogName" | "dogAge" | "dogKind"
+
+type StringDogs = Record<KeyofDogs, string>
+// StringDogs 与下面的类型相同
+type StringDogs = {
+  dogName: string
+  dogAge: string
+  dogKind: string
+}
+```
+
+但你可能对于 `keyof any` 不太理解
+
+```ts
+type KeyofAny = keyof any
+// 等同于
+type KeyofAny = string | number | symbol
+```
+
+被上述代码中 `KeyofAny` 约束的类型可以是如下类型
+
+```ts
+type A = "a"
+type B = "a" | "b"
+type C = "a" | "b" | string
+type D = "a" | 1
+type E = "a" | symbol
+type F = 1
+type G = string
+type H = number
+type I = symbol
+type J = symbol | 1
+```
+
+也就是 由 `symbol` 、`number` 或 `string` 排列组合形成的联合类型、或字面量类型、或字面量类型组成的联合类型
+
+至于 `keyof unknown`、`keyof never`，它们得到的结果都是 `never`
+
+- 使用场景
+
+    1. 通过 Record 构造索引类型 `Record<string, string>` 得到 `{ [key: string]: string }`
+    2. 在策略模式中使用
+    ```ts
+    type DogsRecord = Record<"dogKind1" | "dogKind2", (currentAge: number) => number>;
+    function getRestAgeByCurrentAgeAndKinds(kind: "dogKind1" | "dogKind2", currentAge: number) {
+        // 计算不同类型的狗的可能的剩余年龄
+        const dogsRestAge: DogsRecord = {
+            dogKind1: function(currentAge: number) {
+                return 20 - currentAge
+            },
+            dogKind2: function(currentAge: number) {
+                return 15 - currentAge
+            }
+        }
+        return dogsRestAge[kind](currentAge)
+    }
+    getRestAgeByCurrentAgeAndKinds("dogKind1", 1)
+    ```
+
+### Exclude
+
+*从 T 的联合类型成员中排除可分配给类型 U 的所有联合成员来构造类型*
+
+- 源码
+
+```ts
+/**
+ * Exclude from T those types that are assignable to U
+ */
+type Exclude<T, U> = T extends U ? never : T;
+```
+
+在 `Exclude` 的源码中，引入了新的语法，[条件类型 Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html)
+
+条件类型的 extends 与在 泛型中的 extends 含义不同，后者代表的是约束，而前者是判断（可分配），判断 extends 左侧类型是否可分配给右侧类型，如果可以
 
 ## 非内置可自行实现的 Utility Types
 
@@ -322,7 +427,7 @@ type ReadWrite<T> = {
 *提取 Promise 的泛型参数*
 
 ```ts
-type GetPromiseType<P extends unknown> = P extends Promise<
+type GetPromiseType<P extends Promise<any>> = P extends Promise<
   infer Params
 >
   ? Params
@@ -343,7 +448,7 @@ type ChangeRecordType<K extends string | number | symbol, T = undefined> = {
 
 ### Values
 
-*生成传入类型每个值的联合类型，参考 Object.values*
+*构造传入类型每个值的联合类型，参考 Object.values*
 
 ```ts
 type Values<T> = T[keyof T]
