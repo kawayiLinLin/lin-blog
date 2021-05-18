@@ -224,7 +224,7 @@ type Test = Required<TestNullCheck> // 得到 { testParam: number }
 
 与 `Partial` 相反的场景
 
-### ReadOnly
+### Readonly
 
 *将所有属性变为只读*
 
@@ -267,7 +267,7 @@ type Pick<T, K extends keyof T> = {
 
 - 源码解析
 
-使用 `Pick` 的时候，需要传递两个泛型参数，第一个参数为一个[对象类型](https://www.typescriptlang.org/docs/handbook/2/objects.html)（或映射类型），第二个参数为第一个参数的索引（属性）组成的联合类型（或单个字面量类型），`Pick` 构造的新类型中，属性为第二个参数中的联合类型
+使用 `Pick` 的时候，需要传递两个泛型参数，第一个参数为一个[对象类型](https://www.typescriptlang.org/docs/handbook/2/objects.html)（或映射类型），第二个参数为第一个参数的键（属性）组成的联合类型（或单个字面量类型），`Pick` 构造的新类型中，属性为第二个参数中的联合类型的所有联合类型成员
 
 示例：
 
@@ -439,6 +439,168 @@ type ExampleB = Exclude<{ 2: string }, 2> // 原理同上方注释，也是传�
 
 - 使用场景
 
+  1. 与映射类型配合使用，参考 `Omit` 的实现
+
+### Extract
+
+*从 T 的联合类型成员中提取可分配给类型 U 的所有联合成员来构造类型*
+
+- 源码
+
+```ts
+/**
+ * Extract from T those types that are assignable to U
+ */
+type Extract<T, U> = T extends U ? T : never;
+```
+
+- 源码解析
+
+在 `Exclude` 章节我们讲到了分布条件类型，`Extract` 的作用和 `Exclude` 正好相反，在 `Exclude` 中，会依次将 `T` 中的联合类型成员与类型 `U` 对比，如果其可以分配给类型 `U`，则得到该类型
+
+```ts
+interface Dogs {
+  dogName: string
+  dogAge: number
+  dogKind: string
+}
+
+type KeyofDogs = keyof Dogs // "dogName" | "dogAge" | "dogKind"
+
+type KeysOnlyKind = Extract<KeyofDogs, "dogKind"> // "dogKind"
+```
+
+- 使用场景
+  
+  1. 与映射类型配合使用，参考 `Omit` 的实现
+
+```ts
+// 提取 T 类型的部分（或全部）键构造一个新类型
+type Include<T extends object, U extends keyof any> = {
+  [Key in Extract<keyof T, U>]: T[Key]
+}
+// 或
+type Include<T, K extends keyof any> = Pick<T, Extract<keyof T, K>>;
+```
+
+### Omit
+
+*删除 T 类型中与 K 的所有联合类型成员有交集的键构造一个新类型*
+
+- 源码
+
+```ts
+/**
+ * Construct a type with the properties of T except for those in type K.
+ */
+type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
+```
+
+`Omit` 源码借助了 `Pick` 和 `Exclude`，`Pick` 会构造一个基于第一个参数，且属性为第二个参数（联合类型）的联合类型成员的类型
+
+第一个参数为 `T`，其第二个参数是 `Exclude<keyof T, K>`，`Exclude` 第一个参数为 `keyof T`，即 `T` 的所有键构成的联合类型
+
+`K` 是外部传入 `Omit` 的泛型类型，也会作为第二个参数传给 `Exclude`，由 `Exclude` 得到一个 `keyof T` 剔除掉与 `K` 交集的部分形成的联合类型
+
+这样 `Pick` 生成的新类型的键就会仅包含由 `Exclude` 得到的联合类型中的联合类型成员
+
+最终 `Omit` 会**删除 `T` 类型中与 `K` 的所有联合类型成员有交集的键构造一个新类型**
+
+```ts
+interface Dogs {
+  dogName: string
+  dogAge: number
+  dogKind: string
+}
+
+type DogsWithoutKind = Omit<Dogs, "dogKind"> // { dogName: string; dogAge: number; }
+```
+
+- 使用场景
+
+  1. 对 HTML 元素进行组件封装时，用它替换默认的属性类型
+
+```ts
+import _ from "lodash"
+import React from 'react'
+
+type InputSize = "large" | "middle" | "small"
+type InputName = "first-name-input" | "last-name-input" | "address-input"
+type CoverAttr = "size" | "name"
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, CoverAttr> {
+  size?: InputSize
+  name?: InputName
+}
+
+const Input: React.FC<InputProps> = props => {
+  const classNames = `${props.className} ${props.size}`
+  const omitProps = _.omit(props, ["size", "name"])
+  return <input {...omitProps} className={classNames} />
+}
+
+Input.defaultProps = {
+  size: "middle"
+}
+```
+  2. 对第三方 UI 组件二次封装时，替换其参数
+  3. 其他（组件，函数，对象等）向使用者提供时，省略一些已处理的参数
+
+```ts
+interface Dogs {
+  dogName: string
+  dogAge: number
+  dogKind: string
+}
+/* 
+ * 狗狗清洗登记，登记狗狗名字（假设狗狗名字独一无二）后返回一张凭证
+ * 凭借凭证和狗狗的种类、年龄（设年龄不变大）到清洗处清洗
+ */
+const wash = (dog: Dogs) => { /** 洗狗 */ }
+// 登记的狗
+const queue = new Set<string>([])
+
+function dogsCleanRegister(dog: Dogs) {
+  queue.add(dog.dogName)
+  return function washTicket(dogNeedCheckInfo: Omit<Dogs, "dogName">) {
+    if (dogNeedCheckInfo.dogAge === dog.dogAge && dogNeedCheckInfo.dogKind === dog.dogKind) {
+      wash(dog)
+      queue.delete(dog.dogName)
+    } else {
+      throw new Error('凭证和狗狗不对应')
+    }
+  }
+}
+// 我用自己的狗登记
+const myDog = {
+  dogName: "小明",
+  dogAge: 5,
+  dogKind: "柯基"
+}
+const goToWash = dogsCleanRegister(myDog)
+// 我拿别人的狗去洗
+const myBrothersDog = {
+  dogName: "大明",
+  dogAge: 6,
+  dogKind: "哈士奇"
+}
+// 校验失败
+goToWash(myBrothersDog) // '凭证和狗狗不对应'
+```
+
+### NonNullable
+
+*新类型不可为空*
+
+- 源码
+
+```ts
+/**
+ * Exclude null and undefined from T
+ */
+type NonNullable<T> = T extends null | undefined ? never : T;
+```
+
+
 ## 非内置可自行实现的 Utility Types
 
 **下面的哪些工具类型你用过？你自己还写过哪些工具类型呢？评论区分享一下吧**
@@ -475,7 +637,7 @@ type GetPromiseType<P extends Promise<any>> = P extends Promise<
 
 ### ChangeRecordType
 
-*将对象中所有属性都设置为 T，第一个参数是 keyof object，如果没有第二个参数，则将所有属性值转为 undefined*
+*将对象中所有属性都设置为 T，第一个参数是 keyof object，如果没有传第二个参数，则将所有属性值转为 undefined*
 
 ```ts
 type ChangeRecordType<K extends string | number | symbol, T = undefined> = {
@@ -489,4 +651,29 @@ type ChangeRecordType<K extends string | number | symbol, T = undefined> = {
 
 ```ts
 type Values<T> = T[keyof T]
+```
+
+### Include
+
+*提取 T 类型的部分（或全部）键构造一个新类型，与 Omit 作用相反*
+
+```ts
+// 写法1
+type Include<T extends object, U extends keyof any> = {
+  [Key in Extract<keyof T, U>]: T[Key]
+}
+// 写法2 (映射类型重映射 4.1 新增语法) 
+type Include<T extends object, U extends keyof any> = {
+  [Key in keyof T as Key extends U ? Key : never]: T[Key]
+}
+// 写法3
+type Include<T, K extends keyof any> = Pick<T, Extract<keyof T, K>>
+```
+
+### Nullable
+
+*生成可以为空的联合类型*
+
+```ts
+type Nullable<T extends keyof any> = T | null | undefined
 ```
