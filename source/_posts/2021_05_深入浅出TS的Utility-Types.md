@@ -600,6 +600,10 @@ goToWash(myBrothersDog) // '凭证和狗狗不对应'
 type NonNullable<T> = T extends null | undefined ? never : T;
 ```
 
+- 源码解析
+
+`NonNullable` 中也用到了分布条件类型
+
 
 ## 非内置可自行实现的 Utility Types
 
