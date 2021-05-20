@@ -136,7 +136,7 @@ type DogName = Dogs[DogNameKey]
 
 而 `T` 是原始的（被传入的）索引类型，`T[P]` 也就访问到了 `P` 索引对应的具体的类型了
 
-- 使用场景
+- 使用场景举例
 
   1. 对象的扩展运算符，比如我们实现基于 `useReducer` 实现一个简单的 "`setState`"
 
@@ -162,7 +162,7 @@ setState({ page: 1 })
 
 上面的代码中 nextState 被传入后，会与原 state 做合并操作，nextState 并不需要含有 State 类型的所有键，故使用 Partial 进行类型的定义
 
-2. 都是非必传参但使用参数时如果没有传则会初始化参数
+  2. 都是非必传参但使用参数时如果没有传则会初始化参数
 
 ```ts
 interface Params {
@@ -220,7 +220,7 @@ interface TestNullCheck {
 type Test = Required<TestNullCheck> // 得到 { testParam: number }
 ```
 
-- 使用场景
+- 使用场景举例
 
 与 `Partial` 相反的场景
 
@@ -245,7 +245,7 @@ type Readonly<T> = {
 
 `readonly` 修饰符会让被修饰的属性变为只读的（不能重写 re-written），但不能作用于该属性的子属性
 
-- 使用场景
+- 使用场景举例
 
   1. 参考 Object.freeze 的声明
   2. 某些项目中定义的常量，防止在后续维护中，不小心在其他位置做了修改，可以使用 `Readonly`
@@ -292,7 +292,7 @@ type DogKind = Pick<Dogs, "dogKind"> // { dogKind: string; }
 
 `in` 映射类型可参考 `Partial` 章节，在 `Pick` 中，`K` 会被迭代，`P` 是在每次迭代中都是某个字面量类型，也是 `T` 的某一个属性名，通过索引访问 `T[P]` 能得到该属性名对应的具体类型，最后 `Pick` 得到一个新的对象类型
 
-- 使用场景
+- 使用场景举例
 
   1. 某个位置需要全部的属性，其他位置仅需要部分属性的情况，如上文的 `Dogs` 例子
   2. 参考 [lodash](https://lodash.com.cn/docs/chunk).pick 的声明和实现
@@ -364,7 +364,7 @@ type J = symbol | 1
 
 至于 `keyof unknown`、`keyof never`，它们得到的结果都是 `never`
 
-- 使用场景
+- 使用场景举例
 
   1. 通过 Record 构造索引类型 `Record<string, string>` 得到 `{ [key: string]: string }`
   2. 在策略模式中使用
@@ -443,7 +443,7 @@ type ExampleA = Exclude<1, 2> // 会走正常的条件类型，1 不能分配给
 type ExampleB = Exclude<{ 2: string }, 2> // 原理同上方注释，也是传入的第一个泛型参数的类型 { 2: string }
 ```
 
-- 使用场景
+- 使用场景举例
 
   1. 与映射类型配合使用，参考 `Omit` 的实现
 
@@ -476,7 +476,7 @@ type KeyofDogs = keyof Dogs // "dogName" | "dogAge" | "dogKind"
 type KeysOnlyKind = Extract<KeyofDogs, "dogKind"> // "dogKind"
 ```
 
-- 使用场景
+- 使用场景举例
 
   1. 与映射类型配合使用，参考 `Omit` 的实现
 
@@ -522,7 +522,7 @@ interface Dogs {
 type DogsWithoutKind = Omit<Dogs, "dogKind"> // { dogName: string; dogAge: number; }
 ```
 
-- 使用场景
+- 使用场景举例
 
   1. 对 HTML 元素进行组件封装时，用它替换默认的属性类型
 
@@ -542,6 +542,7 @@ interface InputProps
 const Input: React.FC<InputProps> = (props) => {
   const classNames = `${props.className} ${props.size}`
   const omitProps = _.omit(props, ["size", "name"])
+
   return <input {...omitProps} className={classNames} />
 }
 
@@ -550,8 +551,8 @@ Input.defaultProps = {
 }
 ```
 
-2. 对第三方 UI 组件二次封装时，替换其参数
-3. 其他（组件，函数，对象等）向使用者提供时，省略一些已处理的参数
+  2. 对第三方 UI 组件二次封装时，替换其参数
+  3. 其他（组件，函数，对象等）向使用者提供时，省略一些已处理的参数
 
 ```ts
 interface Dogs {
@@ -571,6 +572,7 @@ const queue = new Set<string>([])
 
 function dogsCleanRegister(dog: Dogs) {
   queue.add(dog.dogName)
+
   return function washTicket(dogNeedCheckInfo: Omit<Dogs, "dogName">) {
     if (
       dogNeedCheckInfo.dogAge === dog.dogAge &&
@@ -589,13 +591,16 @@ const myDog = {
   dogAge: 5,
   dogKind: "柯基",
 }
+
 const goToWash = dogsCleanRegister(myDog)
+
 // 我拿别人的狗去洗
 const myBrothersDog = {
   dogName: "大明",
   dogAge: 6,
   dogKind: "哈士奇",
 }
+
 // 校验失败
 goToWash(myBrothersDog) // '凭证和狗狗不对应'
 ```
@@ -615,11 +620,163 @@ type NonNullable<T> = T extends null | undefined ? never : T
 
 - 源码解析
 
-`NonNullable` 中也用到了分布条件类型
+`NonNullable` 中也用到了分布条件类型，如果泛型类型 `T` 为联合类型，则其每个联合类型成员中可被分配给 `null | undefined` 的类型也就是（`never、null 和undefined`）会被剔除
+
+如下所示：
+
+```ts
+// 狗狗名字的实际情况，流浪狗可能没人起名字即为 null，刚出生的狗可能还没来的及起名字即为 undefined
+type DogsName = 'husky' | 'corgi' | null | undefined
+
+// 到商店洗狗时，不允许没有名字的狗
+type NonNullableDogsName = NonNullable<DogsName> // 得到 type NonNullableDogsName = "husky" | "corgi"
+```
+
+另外，当传入的参数不为联合类型时，除 `null` 和 `undefined`，都会得到传入类型本身
+
+```ts
+// any
+type NonNullableAny = NonNullable<any> // any，any 的条件类型比较特殊，会得到两个分支类型的联合类型
+// unknown
+type NonNullableUnknown = NonNullable<unknown> // unknown
+// never
+type NonNullableNever = NonNullable<never> // never
+// null
+type NonNullableNull = NonNullable<null> // never
+```
+
+- 使用场景举例
+
+  1. 过滤掉 null 类型和 undefined 类型
+
+```ts
+// strictNullChecks 模式
+// 函数类型的定义见 Parameters 章节
+// 洗动物的方法，记载了需要提供的信息，虽然有方法，但可能没有工作人员，这时候是未定义
+interface WashFunctions {
+  washDogs?: (params: { dogName: string; dogAge: number }) => void
+  washCats?: (params: { catName: string; catAge: number }) => void
+}
+// 假设要从洗动物的方法中自动生成表单信息给顾客填写
+// 需求，提取出参数类型
+// Parameters 用于提取函数类型的参数列表类型，详见下一章节
+// Parameters 仅能传入函数类型
+type ParamsByCallbackMap = {
+  [Key in keyof WashFunctions]-?:
+      Parameters<NonNullable<WashFunctions[Key]>>[0]
+}
+// 得到
+/**
+  *type ParamsByCallbackMap = {
+  *   washDogs: {
+  *       dogName: string;
+  *       dogAge: number;
+  *   };
+  *   washCats: {
+  *       catName: string;
+  *       catAge: number;
+  *   };
+  *}
+  */
+```
+
+### Parameters
+
+_基于函数类型 T 的参数类型构造一个元组类型_
+
+- 源码
+
+```ts
+/**
+ * Obtain the parameters of a function type in a tuple
+ */
+type Parameters<T extends (...args: any) => any> = T extends (...args: infer P) => any ? P : never;
+```
+
+- 源码解析
+
+了解 `Parameters` 的原理之前，首先得知道，函数的类型如何进行定义
+
+1. 最常见且简单的方式，使用类型别名
+
+```ts
+type Func1 = (...args: string[]) => string
+type Func2 = (arg1: string, arg2: number) => string
+type Func3 = (arg1: string, arg2: number, ...args: Array<number>) => string
+const arrowFunc: Func3 = (
+  arg1: string, 
+  arg2: number, 
+  ...args: Array<number>
+) => arg1 + [arg2, ...args].reduce((preTotal, current) => preTotal + current, 0)
+```
+
+2. 使用接口进行定义
+
+```ts
+// Func['func1'] 和 Func['func2'] 为函数类型
+interface Func {
+  func1(arg: number): number
+  func2(arg: string): number
+}
+const func: Func = {
+  func1(arg: number) {
+    return arg
+  },
+  func2: (arg: string) => Number(arg)
+}
+// Func3 即为函数类型
+interface Func3 {
+  (arg: number): string
+}
+const func3: Func3 = (arg: number) => {
+  return arg.toString()
+}
+```
+
+3. 使用接口进行重载
+
+```ts
+interface Func {
+  (arg: number): string
+  (arg: string): string
+}
+const func: Func = (arg: number | string) => {
+  return arg.toString()
+}
+```
+4. 使用函数声明进行类型定义
+
+```ts
+declare function Func(...args: string[]): string
+const func: typeof Func = (...args: string[]) {
+  return args.join('')
+}
+```
+
+5. 使用函数声明进行重载
+
+```ts
+function Func4(...args: string[]): string
+function Func4(...args: number[]): string
+function Func4(...args: (string | number)[]) {
+  return args.join('')
+}
+```
 
 ## 非内置可自行实现的 Utility Types
 
 **下面的哪些工具类型你用过？你自己还写过哪些工具类型呢？评论区分享一下吧**
+
+
+### DeepPartial
+
+```ts
+type DeepPartial<T> = {
+    [Key in keyof T]?: T[Key] extends object
+      ? DeepPartial<T[Key]>
+      : T[Key]
+}
+```
 
 ### ReadonlyPartial
 
@@ -630,6 +787,8 @@ type ReadonlyPartial<T> = {
 ```
 
 ### ReadWrite
+
+_或叫 Mutable，移除只读修饰符，可读可写_
 
 ```ts
 type ReadWrite<T> = {
@@ -690,4 +849,15 @@ _生成可以为空的联合类型_
 
 ```ts
 type Nullable<T extends keyof any> = T | null | undefined
+```
+
+### Proxify
+
+```ts
+type Proxify<T> = {
+ [P in keyof T]: { 
+   get(): T[P]
+   set(v: T[P]): void
+ }
+}
 ```
