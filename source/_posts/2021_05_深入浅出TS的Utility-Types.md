@@ -29,8 +29,8 @@ _将传入的 T 类型所有属性置为可选_
  * Make all properties in T optional
  */
 type Partial<T> = {
-  [P in keyof T]?: T[P];
-};
+  [P in keyof T]?: T[P]
+}
 ```
 
 - 源码解析
@@ -63,13 +63,13 @@ type NewType = { [K in OldType]: NewResultType }
 
 它大致包含 5 个部分
 
-1.红色区域：用于承载它的类型别名 
+1.红色区域：用于承载它的类型别名
 
-2.白色区域：变量 `K` (或者其他别名)，它会被依次绑定到联合类型的每个属性 
+2.白色区域：变量 `K` (或者其他别名)，它会被依次绑定到联合类型的每个属性
 
-3.蓝色区域：`in` 关键字 
+3.蓝色区域：`in` 关键字
 
-4.橙色区域：由 number、symbol 或 string 的字面量组成的 `联合类型`，它包含了要迭代的属性名的集合，也可能直接是 number、symbol 或 string 三种类型，当然这种写法与 `{ [key: string]: ResultType }` 的写法相同 
+4.橙色区域：由 number、symbol 或 string 的字面量组成的 `联合类型`，它包含了要迭代的属性名的集合，也可能直接是 number、symbol 或 string 三种类型，当然这种写法与 `{ [key: string]: ResultType }` 的写法相同
 
 5.粉色区域：属性的结果类型
 
@@ -81,7 +81,7 @@ type NewType = { [K in OldType]: NewResultType }
 type NewType = {
   key1: NewResultType
   key2: NewResultType
-};
+}
 ```
 
 你可以在 TS 官网中看到类似的例子。
@@ -99,7 +99,7 @@ type MapedType = {
 ```ts
 type MapedType = {
   [key in OldType]?: NewResultType // 正确的写法
-};
+}
 ```
 
 上面的代码会得到一个这样的类型
@@ -108,7 +108,7 @@ type MapedType = {
 type NewType = {
   key1?: NewResultType | undefined
   key2?: NewResultType | undefined
-};
+}
 ```
 
 再来看属性的结果类型，源码中对结果的处理是这样的：`T[P]`，也就是[索引访问](https://www.typescriptlang.org/docs/handbook/2/indexed-access-types.html)
@@ -122,7 +122,7 @@ interface Dogs {
   dogKind: string
 }
 
-type DogName = Dogs["dogName"]; // 得到 string 类型
+type DogName = Dogs["dogName"] // 得到 string 类型
 ```
 
 如果字符串 `"dogName"` 代表一个[字面量类型](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#literal-types)，那么下面的这种写法就与 `T[P]` 是相似的
@@ -142,47 +142,47 @@ type DogName = Dogs[DogNameKey]
 
 ```ts
 type State = {
-loading: boolean
-list: Array<any>
-page: number
-};
-const [state, setState] = useReducer(
-(state: State, nextState: Partial<State>) => {
-  return { ...state, ...nextState }
-},
-{
-  loading: false,
-  list: [],
-  page: 0,
+  loading: boolean
+  list: Array<any>
+  page: number
 }
+const [state, setState] = useReducer(
+  (state: State, nextState: Partial<State>) => {
+    return { ...state, ...nextState }
+  },
+  {
+    loading: false,
+    list: [],
+    page: 0,
+  }
 )
 // 使用
 setState({ page: 1 })
 ```
 
-  上面的代码中 nextState 被传入后，会与原 state 做合并操作，nextState 并不需要含有 State 类型的所有键，故使用 Partial 进行类型的定义
+上面的代码中 nextState 被传入后，会与原 state 做合并操作，nextState 并不需要含有 State 类型的所有键，故使用 Partial 进行类型的定义
 
-  2. 都是非必传参但使用参数时如果没有传则会初始化参数
+2. 都是非必传参但使用参数时如果没有传则会初始化参数
 
 ```ts
 interface Params {
- param1: string
- param2: number
- param3: Array<string>
-};
-function testFunction(params: Partial<Params>) {
- const requiredParams: Params = {
-  param1: params.param1 ?? '',
-  param2: params.param2 ?? 0,
-  param3: params.param3 ?? []
- }
- return requiredParams
+  param1: string
+  param2: number
+  param3: Array<string>
 }
-  ```
+function testFunction(params: Partial<Params>) {
+  const requiredParams: Params = {
+    param1: params.param1 ?? "",
+    param2: params.param2 ?? 0,
+    param3: params.param3 ?? [],
+  }
+  return requiredParams
+}
+```
 
 ### Required
 
-*让所有属性都变成必选的*
+_让所有属性都变成必选的_
 
 - 源码
 
@@ -191,8 +191,8 @@ function testFunction(params: Partial<Params>) {
  * Make all properties in T required
  */
 type Required<T> = {
-    [P in keyof T]-?: T[P];
-};
+  [P in keyof T]-?: T[P]
+}
 ```
 
 - 源码解析
@@ -203,8 +203,8 @@ TS 在 2.8 版本改进了对[映射类型修饰符的控制](https://www.typesc
 
 ```ts
 type Partial<T> = {
-  [P in keyof T]+?: T[P];
-};
+  [P in keyof T]+?: T[P]
+}
 ```
 
 也就是说 `-?` 的写法会去除可选属性这一属性修饰符，达到让每个属性都变为必选的目的
@@ -226,7 +226,7 @@ type Test = Required<TestNullCheck> // 得到 { testParam: number }
 
 ### Readonly
 
-*将所有属性变为只读*
+_将所有属性变为只读_
 
 - 源码
 
@@ -235,15 +235,15 @@ type Test = Required<TestNullCheck> // 得到 { testParam: number }
  * Make all properties in T readonly
  */
 type Readonly<T> = {
-    readonly [P in keyof T]: T[P];
-};
+  readonly [P in keyof T]: T[P]
+}
 ```
 
 - 源码解析
 
 与 `Partial` 和 `Required` 的实现基本相同，不同的是它的属性修饰符为 [readonly](https://www.typescriptlang.org/docs/handbook/2/objects.html#readonly-properties)，无修饰符前缀
 
-`readonly` 修饰符会让被修饰的属性变为只读的（不能重写re-written），但不能作用于该属性的子属性
+`readonly` 修饰符会让被修饰的属性变为只读的（不能重写 re-written），但不能作用于该属性的子属性
 
 - 使用场景
 
@@ -252,7 +252,7 @@ type Readonly<T> = {
 
 ### Pick
 
-*从 T 类型选择一组属性构造新的类型*
+_从 T 类型选择一组属性构造新的类型_
 
 - 源码
 
@@ -261,8 +261,8 @@ type Readonly<T> = {
  * From T, pick a set of properties whose keys are in the union K
  */
 type Pick<T, K extends keyof T> = {
-    [P in K]: T[P];
-};
+  [P in K]: T[P]
+}
 ```
 
 - 源码解析
@@ -302,15 +302,15 @@ type DogKind = Pick<Dogs, "dogKind"> // { dogKind: string; }
 
 - 源码
 
-*基于一个联合类型构造一个新类型，其属性键为 K，属性值为 T*
+_基于一个联合类型构造一个新类型，其属性键为 K，属性值为 T_
 
 ```ts
 /**
  * Construct a type with a set of properties K of type T
  */
 type Record<K extends keyof any, T> = {
-    [P in K]: T;
-};
+  [P in K]: T
+}
 ```
 
 - 源码解析
@@ -366,29 +366,35 @@ type J = symbol | 1
 
 - 使用场景
 
-    1. 通过 Record 构造索引类型 `Record<string, string>` 得到 `{ [key: string]: string }`
-    2. 在策略模式中使用
+  1. 通过 Record 构造索引类型 `Record<string, string>` 得到 `{ [key: string]: string }`
+  2. 在策略模式中使用
 
- ```ts
- type DogsRecord = Record<"dogKind1" | "dogKind2", (currentAge: number) => number>;
- function getRestAgeByCurrentAgeAndKinds(kind: "dogKind1" | "dogKind2", currentAge: number) {
-     // 计算不同类型的狗的可能的剩余年龄
-     const dogsRestAge: DogsRecord = {
-         dogKind1: function(currentAge: number) {
-             return 20 - currentAge
-         },
-         dogKind2: function(currentAge: number) {
-             return 15 - currentAge
-         }
-     }
-     return dogsRestAge[kind](currentAge)
- }
- getRestAgeByCurrentAgeAndKinds("dogKind1", 1)
- ```
+```ts
+type DogsRecord = Record<
+  "dogKind1" | "dogKind2",
+  (currentAge: number) => number
+>
+function getRestAgeByCurrentAgeAndKinds(
+  kind: "dogKind1" | "dogKind2",
+  currentAge: number
+) {
+  // 计算不同类型的狗的可能的剩余年龄
+  const dogsRestAge: DogsRecord = {
+    dogKind1: function (currentAge: number) {
+      return 20 - currentAge
+    },
+    dogKind2: function (currentAge: number) {
+      return 15 - currentAge
+    },
+  }
+  return dogsRestAge[kind](currentAge)
+}
+getRestAgeByCurrentAgeAndKinds("dogKind1", 1)
+```
 
 ### Exclude
 
-*从 T 的联合类型成员中排除可分配给类型 U 的所有联合成员来构造类型*
+_从 T 的联合类型成员中排除可分配给类型 U 的所有联合成员来构造类型_
 
 - 源码
 
@@ -396,7 +402,7 @@ type J = symbol | 1
 /**
  * Exclude from T those types that are assignable to U
  */
-type Exclude<T, U> = T extends U ? never : T;
+type Exclude<T, U> = T extends U ? never : T
 ```
 
 - 源码解析
@@ -443,7 +449,7 @@ type ExampleB = Exclude<{ 2: string }, 2> // 原理同上方注释，也是传�
 
 ### Extract
 
-*从 T 的联合类型成员中提取可分配给类型 U 的所有联合成员来构造类型*
+_从 T 的联合类型成员中提取可分配给类型 U 的所有联合成员来构造类型_
 
 - 源码
 
@@ -451,7 +457,7 @@ type ExampleB = Exclude<{ 2: string }, 2> // 原理同上方注释，也是传�
 /**
  * Extract from T those types that are assignable to U
  */
-type Extract<T, U> = T extends U ? T : never;
+type Extract<T, U> = T extends U ? T : never
 ```
 
 - 源码解析
@@ -471,7 +477,7 @@ type KeysOnlyKind = Extract<KeyofDogs, "dogKind"> // "dogKind"
 ```
 
 - 使用场景
-  
+
   1. 与映射类型配合使用，参考 `Omit` 的实现
 
 ```ts
@@ -480,12 +486,12 @@ type Include<T extends object, U extends keyof any> = {
   [Key in Extract<keyof T, U>]: T[Key]
 }
 // 或
-type Include<T, K extends keyof any> = Pick<T, Extract<keyof T, K>>;
+type Include<T, K extends keyof any> = Pick<T, Extract<keyof T, K>>
 ```
 
 ### Omit
 
-*删除 T 类型中与 K 的所有联合类型成员有交集的键构造一个新类型*
+_删除 T 类型中与 K 的所有联合类型成员有交集的键构造一个新类型_
 
 - 源码
 
@@ -493,7 +499,7 @@ type Include<T, K extends keyof any> = Pick<T, Extract<keyof T, K>>;
 /**
  * Construct a type with the properties of T except for those in type K.
  */
-type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
+type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>
 ```
 
 `Omit` 源码借助了 `Pick` 和 `Exclude`，`Pick` 会构造一个基于第一个参数，且属性为第二个参数（联合类型）的联合类型成员的类型
@@ -522,28 +528,30 @@ type DogsWithoutKind = Omit<Dogs, "dogKind"> // { dogName: string; dogAge: numbe
 
 ```ts
 import _ from "lodash"
-import React from 'react'
+import React from "react"
 
 type InputSize = "large" | "middle" | "small"
 type InputName = "first-name-input" | "last-name-input" | "address-input"
 type CoverAttr = "size" | "name"
-interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, CoverAttr> {
+interface InputProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, CoverAttr> {
   size?: InputSize
   name?: InputName
 }
 
-const Input: React.FC<InputProps> = props => {
+const Input: React.FC<InputProps> = (props) => {
   const classNames = `${props.className} ${props.size}`
   const omitProps = _.omit(props, ["size", "name"])
   return <input {...omitProps} className={classNames} />
 }
 
 Input.defaultProps = {
-  size: "middle"
+  size: "middle",
 }
 ```
-  2. 对第三方 UI 组件二次封装时，替换其参数
-  3. 其他（组件，函数，对象等）向使用者提供时，省略一些已处理的参数
+
+2. 对第三方 UI 组件二次封装时，替换其参数
+3. 其他（组件，函数，对象等）向使用者提供时，省略一些已处理的参数
 
 ```ts
 interface Dogs {
@@ -551,22 +559,27 @@ interface Dogs {
   dogAge: number
   dogKind: string
 }
-/* 
+/*
  * 狗狗清洗登记，登记狗狗名字（假设狗狗名字独一无二）后返回一张凭证
  * 凭借凭证和狗狗的种类、年龄（设年龄不变大）到清洗处清洗
  */
-const wash = (dog: Dogs) => { /** 洗狗 */ }
+const wash = (dog: Dogs) => {
+  /** 洗狗 */
+}
 // 登记的狗
 const queue = new Set<string>([])
 
 function dogsCleanRegister(dog: Dogs) {
   queue.add(dog.dogName)
   return function washTicket(dogNeedCheckInfo: Omit<Dogs, "dogName">) {
-    if (dogNeedCheckInfo.dogAge === dog.dogAge && dogNeedCheckInfo.dogKind === dog.dogKind) {
+    if (
+      dogNeedCheckInfo.dogAge === dog.dogAge &&
+      dogNeedCheckInfo.dogKind === dog.dogKind
+    ) {
       wash(dog)
       queue.delete(dog.dogName)
     } else {
-      throw new Error('凭证和狗狗不对应')
+      throw new Error("凭证和狗狗不对应")
     }
   }
 }
@@ -574,14 +587,14 @@ function dogsCleanRegister(dog: Dogs) {
 const myDog = {
   dogName: "小明",
   dogAge: 5,
-  dogKind: "柯基"
+  dogKind: "柯基",
 }
 const goToWash = dogsCleanRegister(myDog)
 // 我拿别人的狗去洗
 const myBrothersDog = {
   dogName: "大明",
   dogAge: 6,
-  dogKind: "哈士奇"
+  dogKind: "哈士奇",
 }
 // 校验失败
 goToWash(myBrothersDog) // '凭证和狗狗不对应'
@@ -589,7 +602,7 @@ goToWash(myBrothersDog) // '凭证和狗狗不对应'
 
 ### NonNullable
 
-*新类型不可为空*
+_新类型不可为空_
 
 - 源码
 
@@ -597,13 +610,12 @@ goToWash(myBrothersDog) // '凭证和狗狗不对应'
 /**
  * Exclude null and undefined from T
  */
-type NonNullable<T> = T extends null | undefined ? never : T;
+type NonNullable<T> = T extends null | undefined ? never : T
 ```
 
 - 源码解析
 
 `NonNullable` 中也用到了分布条件类型
-
 
 ## 非内置可自行实现的 Utility Types
 
@@ -621,18 +633,16 @@ type ReadonlyPartial<T> = {
 
 ```ts
 type ReadWrite<T> = {
-  -readonly [P in keyof T]: T[P] 
+  -readonly [P in keyof T]: T[P]
 }
 ```
 
 ### GetPromiseType
 
-*提取 Promise 的泛型参数*
+_提取 Promise 的泛型参数_
 
 ```ts
-type GetPromiseType<P extends Promise<any>> = P extends Promise<
-  infer Params
->
+type GetPromiseType<P extends Promise<any>> = P extends Promise<infer Params>
   ? Params
   : never
 ```
@@ -641,17 +651,17 @@ type GetPromiseType<P extends Promise<any>> = P extends Promise<
 
 ### ChangeRecordType
 
-*将对象中所有属性都设置为 T，第一个参数是 keyof object，如果没有传第二个参数，则将所有属性值转为 undefined*
+_将对象中所有属性都设置为 T，第一个参数是 keyof object，如果没有传第二个参数，则将所有属性值转为 undefined_
 
 ```ts
 type ChangeRecordType<K extends string | number | symbol, T = undefined> = {
-    [P in K]?: T
+  [P in K]?: T
 }
 ```
 
 ### Values
 
-*构造传入类型每个值的联合类型，参考 Object.values*
+_构造传入类型每个值的联合类型，参考 Object.values_
 
 ```ts
 type Values<T> = T[keyof T]
@@ -659,14 +669,14 @@ type Values<T> = T[keyof T]
 
 ### Include
 
-*提取 T 类型的部分（或全部）键构造一个新类型，与 Omit 作用相反*
+_提取 T 类型的部分（或全部）键构造一个新类型，与 Omit 作用相反_
 
 ```ts
 // 写法1
 type Include<T extends object, U extends keyof any> = {
   [Key in Extract<keyof T, U>]: T[Key]
 }
-// 写法2 (映射类型重映射 4.1 新增语法) 
+// 写法2 (映射类型重映射 4.1 新增语法)
 type Include<T extends object, U extends keyof any> = {
   [Key in keyof T as Key extends U ? Key : never]: T[Key]
 }
@@ -676,7 +686,7 @@ type Include<T, K extends keyof any> = Pick<T, Extract<keyof T, K>>
 
 ### Nullable
 
-*生成可以为空的联合类型*
+_生成可以为空的联合类型_
 
 ```ts
 type Nullable<T extends keyof any> = T | null | undefined
