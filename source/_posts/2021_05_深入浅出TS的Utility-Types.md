@@ -748,7 +748,7 @@ const func: Func = (arg: number | string) => {
 
 ```ts
 declare function Func(...args: string[]): string
-const func: typeof Func = (...args: string[]) {
+const func: typeof Func = (...args: string[]) => {
   return args.join('')
 }
 ```
