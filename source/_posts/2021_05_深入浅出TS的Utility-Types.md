@@ -861,3 +861,19 @@ type Proxify<T> = {
  }
 }
 ```
+
+### SumAggregate
+
+_并集_
+
+```ts
+type SumAggregate<T, U> = T | U
+```
+
+### Diff
+
+_差异_
+
+```ts
+type Diff<T, C> = Exclude<T, C> | Exclude<C, T>
+```
