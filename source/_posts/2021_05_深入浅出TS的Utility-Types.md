@@ -697,7 +697,7 @@ type Parameters<T extends (...args: any) => any> = T extends (...args: infer P) 
 
 了解 `Parameters` 的原理之前，首先得知道，函数的类型如何进行定义
 
-1. 最常见且简单的方式，使用类型别名
+1. 最常见且简单的方式，使用类型别名（[函数类型表达式 function-type-expressions](https://www.typescriptlang.org/docs/handbook/2/functions.html#function-type-expressions)）
 
 ```ts
 type Func1 = (...args: string[]) => string
@@ -710,7 +710,7 @@ const arrowFunc: Func3 = (
 ) => arg1 + [arg2, ...args].reduce((preTotal, current) => preTotal + current, 0)
 ```
 
-2. 使用接口进行定义
+2. 使用接口进行定义（下面代码中的 `Func3` 语法为 [调用签名 call-signatures](https://www.typescriptlang.org/docs/handbook/2/functions.html#call-signatures)）
 
 ```ts
 // Func['func1'] 和 Func['func2'] 为函数类型
@@ -733,7 +733,7 @@ const func3: Func3 = (arg: number) => {
 }
 ```
 
-3. 使用接口进行重载
+3. 使用接口进行重载（实际上是接口的合并）
 
 ```ts
 interface Func {
@@ -744,7 +744,7 @@ const func: Func = (arg: number | string) => {
   return arg.toString()
 }
 ```
-4. 使用函数声明进行类型定义
+4. 使用 declare 进行类型定义（[contextual-typing](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes-func.html#contextual-typing)）
 
 ```ts
 declare function Func(...args: string[]): string
@@ -753,15 +753,20 @@ const func: typeof Func = (...args: string[]) => {
 }
 ```
 
-5. 使用函数声明进行重载
+5. 使用函数声明进行重载（[函数重载 function-overloads](https://www.typescriptlang.org/docs/handbook/2/functions.html#function-overloads)）
 
 ```ts
-function Func4(...args: string[]): string
-function Func4(...args: number[]): string
-function Func4(...args: (string | number)[]) {
+function func4(...args: string[]): string
+function func4(...args: number[]): string
+function func4(...args: (string | number)[]) {
   return args.join('')
 }
 ```
+
+6. 其他方式（见下文，或参考[官方文档](https://www.typescriptlang.org/docs/handbook/2/functions.html)）
+
+在 `Parameters` 源码中，泛型 T 的约束为 `(...args: any) => any`（注：`Function` 类型没有内容和签名，不能分配给它）
+
 
 ## 非内置可自行实现的 Utility Types
 
