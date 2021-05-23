@@ -89,7 +89,7 @@ type NewType = {
 在索引类型中，这样的写法([属性修饰符](https://www.typescriptlang.org/docs/handbook/2/objects.html#property-modifiers)：`?`)是不行的
 
 ```ts
-type MapedType = {
+type IndexType = {
     [key: string]?: string // 错误的写法
 }
 ```
@@ -97,7 +97,7 @@ type MapedType = {
 但在映射类型中，`?` 的写法是可以的
 
 ```ts
-type MapedType = {
+type MappingType = {
   [key in OldType]?: NewResultType // 正确的写法
 }
 ```
@@ -765,7 +765,13 @@ function func4(...args: (string | number)[]) {
 
 6. 其他方式（见下文，或参考[官方文档](https://www.typescriptlang.org/docs/handbook/2/functions.html)）
 
-在 `Parameters` 源码中，泛型 T 的约束为 `(...args: any) => any`（注：`Function` 类型没有内容和签名，不能分配给它）
+`Parameters` 泛型 `T` 的约束为 `(...args: any) => any`（注：`Function` 类型没有内容和签名，不能分配给它），上述5种定义函数类型的方式，都可以分配到该类型
+
+因此都可以作为参数传给 `Parameters`，`Parameters` 的实现也使用了条件类型，如果泛型 `T` 可以分配给 `(...args: infer P) => any`，则为 `P` 类型
+
+`infer` 关键字见[在条件类型中推断](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types)，
+
+> 注：从具有多个调用签名的类型（例如重载函数的类型）进行推断时，将从最后一个签名进行推断。无法基于参数类型列表执行重载解析
 
 
 ## 非内置可自行实现的 Utility Types
