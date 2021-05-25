@@ -902,6 +902,7 @@ type ConstructorParameters<T extends new (...args: any) => any> = T extends new 
 
 - 源码解析
 
+`ConstructorParameters` 的源码与 `Parameters` 的源码及其相似，只是在函数类型前多了一个 `new`
 
 ## 非内置可自行实现的 Utility Types
 
