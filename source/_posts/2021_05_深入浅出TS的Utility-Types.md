@@ -887,6 +887,10 @@ customerSayDogInfo(staffGetDogInfo)
 
 `extends` 左右两侧为函数类型时，会得到哪个分支的类型，就显而易见了
 
+- 使用场景
+
+  1. 高阶函数，不使用泛型的情况下，某些场景可以用 Parameters 提取出传入的函数的参数类型
+
 ### ConstructorParameters
 
 _从构造函数类型 T 的参数类型构造元组或数组类型（如果 T 不是函数，则为 never）_
@@ -902,7 +906,42 @@ type ConstructorParameters<T extends new (...args: any) => any> = T extends new 
 
 - 源码解析
 
-`ConstructorParameters` 的源码与 `Parameters` 的源码及其相似，只是在函数类型前多了一个 `new`
+`ConstructorParameters` 的源码与 `Parameters` 的源码极其相似，只是在函数类型前多了一个 `new`
+
+在函数类型前面写一个 `new` 关键字的语法在 TS 中被称为[构造签名 Construct Signatures](https://www.typescriptlang.org/docs/handbook/2/functions.html#construct-signatures)
+
+用构造函数举例来理解 `new` 关键字在 TS 中的使用方法
+
+```ts
+// 定义狗的类型
+interface DogType {
+  dogName?: string
+  dogAge: number
+  dogKind: 'black' | 'white'
+}
+// 母狗
+interface FemaleDog extends DogType {
+  isMale: false
+  giveBirth: Function
+}
+// 公狗
+interface MaleDog extends DogType {
+  isMale: true
+}
+// 设有母狗和公狗一只
+declare const femaleDog: FemaleDog
+declare const maleDog: MaleDog
+function Dog(femaleDog: FemaleDog, maleDog: MaleDog): FemaleDog | MaleDog {
+    this.dogName = undefined // 刚出生的狗没有名字
+    this.dosAge = 0
+    this.dogKind = Math.random() > 0.5 ? femaleDog.dogKind : maleDog.dogKind
+    this.isMale = Math.random() < 0.5 ? true : false
+    if (this.isMale === false) {
+      this.giveBirth = maleDog.giveBirth
+    }
+  }
+}
+```
 
 ## 非内置可自行实现的 Utility Types
 
