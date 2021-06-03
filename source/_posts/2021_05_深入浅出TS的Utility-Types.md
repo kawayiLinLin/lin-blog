@@ -910,38 +910,222 @@ type ConstructorParameters<T extends new (...args: any) => any> = T extends new 
 
 在函数类型前面写一个 `new` 关键字的语法在 TS 中被称为[构造签名 Construct Signatures](https://www.typescriptlang.org/docs/handbook/2/functions.html#construct-signatures)
 
-用构造函数举例来理解 `new` 关键字在 TS 中的使用方法
+构造签名一般用在 JS 运行环境中自带的构造函数的声明（现有 API），或在 `.d.ts` 声明文件中使用
+
+如果你写了一个构造函数，请不要使用构造签名进行类型定义，因为你很难定义出来
+
+其他情况，你可以将它作为一个约束类型来使用（比如定义函数参数的类型必须为一个构造函数），而不是直接用于函数或类的类型声明
+
+`ConstructorParameters` 的使用也与 `Parameters` 相似
 
 ```ts
-// 定义狗的类型
-interface DogType {
-  dogName?: string
-  dogAge: number
-  dogKind: 'black' | 'white'
-}
-// 母狗
-interface FemaleDog extends DogType {
-  isMale: false
-  giveBirth: Function
-}
-// 公狗
-interface MaleDog extends DogType {
-  isMale: true
-}
-// 设有母狗和公狗一只
-declare const femaleDog: FemaleDog
-declare const maleDog: MaleDog
-function Dog(femaleDog: FemaleDog, maleDog: MaleDog): FemaleDog | MaleDog {
-    this.dogName = undefined // 刚出生的狗没有名字
-    this.dosAge = 0
-    this.dogKind = Math.random() > 0.5 ? femaleDog.dogKind : maleDog.dogKind
-    this.isMale = Math.random() < 0.5 ? true : false
-    if (this.isMale === false) {
-      this.giveBirth = maleDog.giveBirth
-    }
+class Dog {
+  private dogAge: number
+  private isMale: boolean
+  private dogKind: string
+  constructor(isMale: boolean, dogKind: string) {
+    this.dogAge = 0
+    this.isMale = isMale
+    this.dogKind = dogKind
   }
 }
+type DogGaveBirthNeedInfo = ConstructorParameters<typeof Dog> // 得到 [boolean, string] 类型
 ```
+
+### ReturnType
+
+_基于函数类型 T 的返回值类型构造一个新类型_
+
+- 源码
+
+```ts
+/**
+ * Obtain the return type of a function type
+ */
+type ReturnType<T extends (...args: any) => any> = T extends (...args: any) => infer R ? R : any;
+```
+
+- 源码解析
+
+与 `Parameters` 源码不同的是，其 `infer` 的 `R` 在函数类型的返回值位置
+
+```ts
+function washDog() {
+  return {
+    dogName: 'linlin',
+    dogAge: 20,
+    dogKind: 'husky'
+  }
+}
+type WashTicket = ReturnType<typeof washDog> 
+/*
+ * 会的到这样的类型，也就是函数 washDog 返回值的类型
+ *type WashTicket = {
+ *  dogName: string
+ *  dogAge: number
+ *  dogKind: string
+ *}
+*/ 
+```
+
+- 使用场景举例
+
+  1. 高阶函数，不使用泛型的情况下，某些场景可以用 ReturnType 提取出传入的函数的返回值类型
+
+
+### InstanceType
+
+_基于一个构造函数类型 T 的返回值构造一个新类型_
+
+- 源码
+
+```ts
+/**
+ * Obtain the return type of a constructor function type
+ */
+type InstanceType<T extends new (...args: any) => any> = T extends new (...args: any) => infer R ? R : any;
+```
+
+- 源码解析
+
+`InstanceType` 与 `ReturnType` 的区别是它多了构造签名，与 `ConstructorParameters` 的区别是它推断的不是参数类型，而是返回值类型
+
+```ts
+class Dog {
+  private dogAge: number
+  private isMale: boolean
+  private dogKind: string
+  constructor(isMale: boolean, dogKind: string) {
+    this.dogAge = 0
+    this.isMale = isMale
+    this.dogKind = dogKind
+  }
+}
+type DogGaveBirthNeedInfo = InstanceType<typeof Dog> // 得到 Dog 类型
+```
+
+也许你会疑问，为什么还得到 Dog 本身了？
+
+请看下图
+
+![](class-type-example.jpg)
+
+`class` 定义的类本身也是一种类型，它的实例的类型可以用它本身来进行描述
+
+如 `Dog['dogAge']` 能得到实例的私有属性 `dogAge` 的类型 `number`
+
+### Uppercase
+
+_将字符串的字面量类型转为大写_
+
+`Uppercase` 的实现为编译器内置，[TS 4.1 新增](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#template-literal-types)，可以模板字符串类型配合使用，文档见：[内置字符串操作类型 Intrinsic String Manipulation Types](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html#intrinsic-string-manipulation-types)，参考 [commit](https://github.com/microsoft/TypeScript/commit/fbce4f6c989e4296ab43873ffc78e9c17809cac9)，下同
+
+- 源码
+
+```ts
+/**
+ * Convert string literal type to uppercase
+ */
+type Uppercase<S extends string> = intrinsic;
+```
+
+- 用法
+
+```ts
+type DogName = "LinLin"
+type UppercaseDogName = Uppercase<DogName> // 得到 "LINLIN"
+```
+
+如果传入的类型为联合类型，则会得到一个新类型，其每个成员都会转为大写（二十六个字母）
+
+如果传入的类型为 `any` 或者是 `string`，则会得到它们本身
+
+### Lowercase
+
+_将字符串的字面量类型转换为小写_
+
+`Lowercase` 的实现为编译器内置
+
+- 源码
+
+```ts
+/**
+ * Convert string literal type to lowercase
+ */
+type Lowercase<S extends string> = intrinsic;
+```
+
+- 用法
+
+```ts
+type DogName = "LinLin"
+type LowercaseDogName = Lowercase<DogName> // 得到 "linlin"
+```
+
+### Capitalize
+
+_将字符串的字面量类型首字母转换为大写_
+
+`Capitalize` 的实现为编译器内置
+
+- 源码
+
+```ts
+/**
+ * Convert first character of string literal type to uppercase
+ */
+type Capitalize<S extends string> = intrinsic;
+```
+
+- 用法
+
+```ts
+type DogName = "linlin"
+type CapitalizeDogName = Capitalize<DogName> // 得到 "LinLin"
+```
+
+### Uncapitalize
+
+_将字符串的字面量类型首字母转换为小写_
+
+`Uncapitalize` 的实现为编译器内置
+
+- 源码
+
+```ts
+/**
+ * Convert first character of string literal type to lowercase
+ */
+type Uncapitalize<S extends string> = intrinsic;
+```
+
+- 用法
+
+```ts
+type DogName = "LinLin"
+type UncapitalizeDogName = Uncapitalize<DogName> // 得到 "linlin"
+```
+
+- 使用场景
+
+  1. 上述四个字符串操作类型，可与模板字符串类型配合使用，实现高级的类型定义
+
+
+### ThisType
+
+_增强对象字面量类型中 this 的类型_
+
+- 源码
+
+```ts
+/**
+ * Marker for contextual 'this' type
+ */
+interface ThisType<T> { }
+```
+
+除了在字面量类型中使用（需要启用 `--noImplicitThis`），其余位置使用都是一个空接口，具体可参考[文档 ThisType](https://www.typescriptlang.org/docs/handbook/utility-types.html#thistypetype)
+
 
 ## 非内置可自行实现的 Utility Types
 
@@ -1066,4 +1250,20 @@ _元组转联合类型_
 type Flatten<T> = T extends Array<infer U> ? U : never
 // 写法2
 type Flatten<T extends any[]> = T[number]
+```
+
+### GetterSetterPreFix
+
+_为现有属性添加上 set 和 get 前缀_
+
+```ts
+type GetterSetterPreFix<T> = {
+    [Key in keyof T as Key extends string ? `get${Uppercase<Key>}` : never]: {
+        (): T[Key];
+    }
+} & {
+    [Key in keyof T as Key extends string ? `set${Uppercase<Key>}` : never]: {
+        (val: T[Key]): void;
+    }
+} & T
 ```
