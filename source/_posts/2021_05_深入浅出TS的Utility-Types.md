@@ -65,7 +65,7 @@ type NewType = { [K in OldType]: NewResultType }
 
 1.红色区域：用于承载它的类型别名
 
-2.白色区域：变量 `K` (或者其他别名)，它会被依次绑定到联合类型的每个属性
+2.白色区域：类型别名 `K` (或者其他别名)，它会被依次绑定到联合类型的每个属性
 
 3.蓝色区域：`in` 关键字
 
@@ -1124,7 +1124,7 @@ _增强对象字面量类型中 this 的类型_
 interface ThisType<T> { }
 ```
 
-除了在字面量类型中使用（需要启用 `--noImplicitThis`），其余位置使用都是一个空接口，具体可参考[文档 ThisType](https://www.typescriptlang.org/docs/handbook/utility-types.html#thistypetype)
+除了在对象字面量类型中使用（需要启用 `--noImplicitThis`），其余位置使用都是一个空接口，具体可参考[文档 ThisType](https://www.typescriptlang.org/docs/handbook/utility-types.html#thistypetype)
 
 
 ## 非内置可自行实现的 Utility Types
