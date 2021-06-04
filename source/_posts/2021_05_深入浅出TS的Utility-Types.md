@@ -1292,8 +1292,12 @@ type PointSplit<
         [Key in keyof A]: A[Key] extends never
             ? never
             : A[Key] extends object
-            ? `${Exclude<Key, symbol>}.${Exclude<keyof A[Key], symbol>}` | (PointSplit<A[Key]> extends infer U ? `${Exclude<Key, symbol>}.${Extract<U, string>}` : never)
+            ? `${Extract<Key, string>}.${Extract<keyof A[Key], string>}` | (PointSplit<A[Key]> extends infer U ? `${Extract<Key, string>}.${Extract<U, string>}` : never)
             : never
     }
 > = T extends object ? Exclude<keyof A | Exclude<Values<B>, never>, never> : never
 ```
+
+如图所示
+
+![](point-split-example.jpg)
