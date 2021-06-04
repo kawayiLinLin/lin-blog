@@ -1276,6 +1276,18 @@ _生成可以为空的联合类型_
 type Nullable<T extends keyof any> = T | null | undefined
 ```
 
+### NullableValues
+
+_允许每个属性值为空_
+
+注：使用了上文的 `Nullable`
+
+```ts
+type NullableValue<T> = {
+  [Key in keyof T]?: Nullable<T[Key]>
+}
+```
+
 ### Proxify
 
 ```ts
