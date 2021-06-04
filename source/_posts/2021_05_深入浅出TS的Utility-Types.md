@@ -1267,3 +1267,13 @@ type GetterSetterPreFix<T> = {
     }
 } & T
 ```
+
+### ExcludeValues
+
+_剔除掉类型 T 中，满足值可分配给 V 的属性名，并构造一个新类型_
+
+```ts
+type ExcludeValues<T, V> = {
+    [Key in keyof T as T[Key] extends V ? never : Key]: T[Key]
+}
+```
