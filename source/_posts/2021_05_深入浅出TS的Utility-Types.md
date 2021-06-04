@@ -1124,8 +1124,69 @@ _增强对象字面量类型中 this 的类型_
 interface ThisType<T> { }
 ```
 
-除了在对象字面量类型中使用（需要启用 `--noImplicitThis`），其余位置使用都是一个空接口，具体可参考[文档 ThisType](https://www.typescriptlang.org/docs/handbook/utility-types.html#thistypetype)
+除了在对象字面量类型中使用（需要启用 `--noImplicitThis`），其余位置使用都仅是一个空接口，具体可参考[文档 ThisType](https://www.typescriptlang.org/docs/handbook/utility-types.html#thistypetype)中的例子
 
+
+### ThisParameterType
+
+_提取函数声明的 this 类型_
+
+- 源码
+
+```ts
+/**
+ * Extracts the type of the 'this' parameter of a function type, or 'unknown' if the function type has no 'this' parameter.
+ */
+type ThisParameterType<T> = T extends (this: infer U, ...args: any[]) => any ? U : unknown;
+```
+
+- 源码解析
+
+如果你需要[在函数的实现中使用 this](https://www.typescriptlang.org/docs/handbook/2/functions.html#declaring-this-in-a-function)，那么你可以在第一个参数位置显示的声明它（函数参数类型依次顺延，第二位为函数的第一个参数），如下所示
+
+```ts
+interface Dog {
+  voice: {
+    bark(): void
+  }
+}
+function dogBark(this: Dog) {
+  this.voice.bark()
+}
+// 如果不显示的声明 this，则 this 会根据函数声明所在的环境进行推导
+// 声明 this 后，在函数调用时，TS 会校验当前上下文中的 this 是否与所需的 this 相匹配
+// dogBark 的调用方式如下
+declare const dog: Dog
+dogBark.call(dog)
+// 或
+declare const dog: Dog & { dogBark: typeof dogBark }
+dog.dogBark()
+```
+
+不要在箭头函数里面显示的定义 this，箭头函数的 this 不可改变
+
+`ThisParameterType` 和 `Parameters` 的实现类似，都是基于 `infer`，`ThisParameterType` 推导的是 `this` 的类型，如果没有显示的声明 `this`，则为 `unknown`
+
+### OmitThisParameter
+
+_基于一个函数类型构造一个没有 this 声明的函数类型_
+
+- 源码
+
+```ts
+/**
+ * Removes the 'this' parameter from a function type.
+ */
+type OmitThisParameter<T> = unknown extends ThisParameterType<T> ? T : T extends (...args: infer A) => infer R ? (...args: A) => R : T;
+```
+
+- 源码解析
+
+这就类似于把可选属性的 `?` 修饰符给去掉，为了去掉这个修饰符，TS 专门提供了一种方式，而 `OmitThisParameter` 是用 TS 已有的其他方式来对 `this` 进行剔除
+
+`OmitThisParameter` 可以接受一个函数类型 `T`，如果 `ThisParameterType<T>` 得到 `unknown` 类型（未显示指定 this 或 不是函数类型），则直接返回类型 `T`，否则将类型 `T` 与类型 `(...args: infer A) => infer R` 做比较并提取参数类型 `A` 和 返回值类型 `R`，如果前者（`T`）是后者的子类型，则得到一个新的函数类型，它的参数类型为 `A`，返回值类型为 `R`，否则得到 `T` 类型本身
+
+注意，带有 this 类型的函数类型是不带 this 的但参数类型与前者一致的函数类型的子类型
 
 ## 非内置可自行实现的 Utility Types
 
@@ -1257,7 +1318,7 @@ type Flatten<T extends any[]> = T[number]
 _为现有属性添加上 set 和 get 前缀_
 
 ```ts
-type GetterSetterPreFix<T> = {
+type GetterSetterPrefix<T> = {
     [Key in keyof T as Key extends string ? `get${Uppercase<Key>}` : never]: {
         (): T[Key];
     }
@@ -1270,7 +1331,7 @@ type GetterSetterPreFix<T> = {
 
 ### ExcludeValues
 
-_剔除掉类型 T 中，满足值可分配给 V 的属性名，并构造一个新类型_
+_剔除掉类型 T 中满足值可分配给 V 的属性名，并构造一个新类型_
 
 ```ts
 type ExcludeValues<T, V> = {
