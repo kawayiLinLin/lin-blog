@@ -1277,3 +1277,23 @@ type ExcludeValues<T, V> = {
     [Key in keyof T as T[Key] extends V ? never : Key]: T[Key]
 }
 ```
+
+### PointSplit
+
+_构造一个描述对象类型可访问的属性链的字符串联合类型_
+
+```ts
+type PointSplit<
+    T,
+    A = {
+        [Key in keyof T]: T[Key] extends string ? never : T[Key]
+    },
+    B = {
+        [Key in keyof A]: A[Key] extends never
+            ? never
+            : A[Key] extends object
+            ? `${Exclude<Key, symbol>}.${Exclude<keyof A[Key], symbol>}` | (PointSplit<A[Key]> extends infer U ? `${Exclude<Key, symbol>}.${Extract<U, string>}` : never)
+            : never
+    }
+> = T extends object ? Exclude<keyof A | Exclude<Values<B>, never>, never> : never
+```
