@@ -111,9 +111,9 @@ type NewType = {
 }
 ```
 
-再来看属性的结果类型，源码中对结果的处理是这样的：`T[P]`，也就是[索引访问](https://www.typescriptlang.org/docs/handbook/2/indexed-access-types.html)
+对于属性的结果类型，源码中是这样处理的：`T[P]`，也就是[索引访问](https://www.typescriptlang.org/docs/handbook/2/indexed-access-types.html)
 
-索引访问能通过索引访问到其对应的具体类型，举例：
+`索引访问` 能通过 `索引` 访问到其对应的具体类型，举例：
 
 ```ts
 interface Dogs {
@@ -138,7 +138,7 @@ type DogName = Dogs[DogNameKey]
 
 - 使用场景举例
 
-  1. 对象的扩展运算符，比如我们实现基于 `useReducer` 实现一个简单的 "`setState`"
+  1. 对象的扩展运算符，比如我们实现基于 `useReducer` 实现一个简单的 `setState`
 
 ```ts
 type State = {
@@ -267,7 +267,7 @@ type Pick<T, K extends keyof T> = {
 
 - 源码解析
 
-使用 `Pick` 的时候，需要传递两个泛型参数，第一个参数为一个[对象类型](https://www.typescriptlang.org/docs/handbook/2/objects.html)（或映射类型），第二个参数为第一个参数的键（属性）组成的联合类型（或单个字面量类型），`Pick` 构造的新类型中，属性为第二个参数中的联合类型的所有联合类型成员
+使用 `Pick` 时，需传递两个泛型参数，第一个参数为一个[对象类型](https://www.typescriptlang.org/docs/handbook/2/objects.html)（或映射类型），第二个参数为第一个参数的键（属性）组成的联合类型（或单个字面量类型），`Pick` 构造的新类型中，属性为第二个参数中的联合类型的所有联合类型成员
 
 示例：
 
@@ -284,13 +284,13 @@ type NameAndAge = Pick<Dogs, "dogName" | "dogAge"> // { dogName: string; dogAge:
 type DogKind = Pick<Dogs, "dogKind"> // { dogKind: string; }
 ```
 
-在 `Pick` 的实现中，引入了新的语法，泛型（自行查阅[文档](https://www.typescriptlang.org/docs/handbook/2/generics.html)）、[extends](https://www.typescriptlang.org/docs/handbook/2/generics.html#generic-constraints)
+在 `Pick` 的实现中，引入了新的语法，[泛型](https://www.typescriptlang.org/docs/handbook/2/generics.html)、[extends](https://www.typescriptlang.org/docs/handbook/2/generics.html#generic-constraints)
 
 `extends` 在 TS 中，不同的位置使用有不同的含义，在这里是约束（Generic Constraints）的含义，extends 左侧类型一定要满足可分配给右侧类型
 
 `keyof T` 的写法在前文中已经讲到（另外泛型参数中，靠后的参数的 extends 子句能使用靠前参数的类型别名），T 是一个对象类型，那么 `keyof T` 是一个由 string 或 number （没有 symbol）组成的联合类型，因此 `K` 是 `T` 的所有属性名构成的联合类型的子类型
 
-`in` 映射类型可参考 `Partial` 章节，在 `Pick` 中，`K` 会被迭代，`P` 是在每次迭代中都是某个字面量类型，也是 `T` 的某一个属性名，通过索引访问 `T[P]` 能得到该属性名对应的具体类型，最后 `Pick` 得到一个新的对象类型
+`in` 映射类型可参考 `Partial` 章节，在 `Pick` 中，`K` 会被迭代，`P` 是在每次迭代中都是某个字面量类型，也是 `T` 的某一个属性名，通过索引访问 `T[P]` 能得到该属性名对应的属性值的具体类型，最后 `Pick` 得到一个新的对象类型
 
 - 使用场景举例
 
@@ -841,7 +841,7 @@ customerSayDogInfo(staffGetDogInfo)
 
 继续使用上面的例子，我们把场景改造下，但还是让参数的类型仍然满足函数子类型的规则，除了店员需要的信息，客户还会说一些不需要的，店员记录完以后，会给一个回执
 
-客户要知道的就是，什么时候开始洗，什么时候洗完，谁来给我的狗洗
+客户要从回执中知道的就是，什么时候开始洗，什么时候洗完，谁来给我的狗洗
 
 ```ts
 // 店员获取狗的信息，登记后给回执
@@ -1182,7 +1182,7 @@ type OmitThisParameter<T> = unknown extends ThisParameterType<T> ? T : T extends
 
 - 源码解析
 
-这就类似于把可选属性的 `?` 修饰符给去掉，为了去掉这个修饰符，TS 专门提供了一种方式，而 `OmitThisParameter` 是用 TS 已有的其他方式来对 `this` 进行剔除
+这就类似于把可选属性的属性修饰符 `?` 给去掉，为了去掉这个修饰符，TS 专门提供了一种方式，而 `OmitThisParameter` 是用 TS 已有的其他方式来对 `this` 进行剔除
 
 `OmitThisParameter` 可以接受一个函数类型 `T`，如果 `ThisParameterType<T>` 得到 `unknown` 类型（未显示指定 this 或 不是函数类型），则直接返回类型 `T`，否则将类型 `T` 与类型 `(...args: infer A) => infer R` 做比较并提取参数类型 `A` 和 返回值类型 `R`，如果前者（`T`）是后者的子类型，则得到一个新的函数类型，它的参数类型为 `A`，返回值类型为 `R`，否则得到 `T` 类型本身
 
@@ -1238,8 +1238,8 @@ type GetPromiseType<P extends Promise<any>> = P extends Promise<infer Params>
 _将对象中所有属性都设置为 T，第一个参数是 keyof object，如果没有传第二个参数，则将所有属性值转为 undefined_
 
 ```ts
-type ChangeRecordType<K extends string | number | symbol, T = undefined> = {
-  [P in K]?: T
+type ChangeRecordType<K, T = undefined> = {
+  [P in keyof K]?: T
 }
 ```
 
@@ -1339,9 +1339,22 @@ type ExcludeValues<T, V> = {
 }
 ```
 
+
+### ExtractValues
+
+_保留类型 T 中满足值可分配给 V 的属性名，并构造一个新类型_
+
+```ts
+type ExtractValues<T, V> = {
+    [Key in keyof T as T[Key] extends V ? Key : never]: T[Key]
+}
+```
+
 ### ChainedAccessUnion
 
 _构造一个描述对象类型可访问的属性链的字符串联合类型_
+
+注：使用了上文的 `Values`
 
 ```ts
 type ChainedAccessUnion<
@@ -1362,3 +1375,10 @@ type ChainedAccessUnion<
 如图所示，Diff 得到 never，两者（都是联合类型）没有区别
 
 ![](chained-access-union-example.jpg)
+
+
+## 总结
+
+技术并不能解决所有的问题，但我们对技术的熟悉程度决定了我们使用它的上限，让我们 `能` 更好的解决问题
+
+那么对于 TS，你想要再学一遍吗？
