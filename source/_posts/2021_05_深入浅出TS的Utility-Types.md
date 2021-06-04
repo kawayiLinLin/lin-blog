@@ -1278,12 +1278,12 @@ type ExcludeValues<T, V> = {
 }
 ```
 
-### PointSplit
+### ChainedAccessUnion
 
 _构造一个描述对象类型可访问的属性链的字符串联合类型_
 
 ```ts
-type PointSplit<
+type ChainedAccessUnion<
     T,
     A = {
         [Key in keyof T]: T[Key] extends string ? never : T[Key]
@@ -1292,12 +1292,12 @@ type PointSplit<
         [Key in keyof A]: A[Key] extends never
             ? never
             : A[Key] extends object
-            ? `${Extract<Key, string>}.${Extract<keyof A[Key], string>}` | (PointSplit<A[Key]> extends infer U ? `${Extract<Key, string>}.${Extract<U, string>}` : never)
+            ? `${Extract<Key, string>}.${Extract<keyof A[Key], string>}` | (ChainedAccessUnion<A[Key]> extends infer U ? `${Extract<Key, string>}.${Extract<U, string>}` : never)
             : never
     }
 > = T extends object ? Exclude<keyof A | Exclude<Values<B>, never>, never> : never
 ```
 
-如图所示
+如图所示，Diff 得到 never，两者（都是联合类型）没有区别
 
-![](point-split-example.jpg)
+![](chained-access-union-example.jpg)
