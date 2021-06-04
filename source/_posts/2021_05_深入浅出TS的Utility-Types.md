@@ -1325,7 +1325,7 @@ type Flatten<T> = T extends Array<infer U> ? U : never
 type Flatten<T extends any[]> = T[number]
 ```
 
-### GetterSetterPreFix
+### GetterSetterPrefix
 
 _为现有属性添加上 set 和 get 前缀_
 
