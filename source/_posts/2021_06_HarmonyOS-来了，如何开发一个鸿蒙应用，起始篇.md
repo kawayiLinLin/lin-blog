@@ -569,4 +569,9 @@ export default {
 
 之后再编译运行，点击按钮就可以震动了！
 
+```shell
+# 示例代码
+https://github.com/kawayiLinLin/harmony-calculator
+```
+
 下次让我们在 HarmonyOS 来了，如何开发一个鸿蒙应用，上篇 相遇吧
