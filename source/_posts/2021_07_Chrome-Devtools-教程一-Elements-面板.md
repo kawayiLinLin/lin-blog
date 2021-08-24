@@ -21,7 +21,7 @@ category:
 ![](vscode-chrome-devtools-example.jpg)
 
 本系列主要讲解 Elements、Console、Network、Sources、Application、Performance、Memory 这七个调试面板（顶级选项卡）
-
+<!-- more -->
 
 ## Elements 面板基础用法
 
