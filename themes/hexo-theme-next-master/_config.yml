@@ -205,8 +205,9 @@ links_settings:
   layout: inline
 
 links:
-  微信聊天室: http://yzl.xyz:3112
-  Markdown: http://yzl.xyz:226/markdownonline
+  首页: https://yzl.xyz
+  # 微信聊天室: http://yzl.xyz:3112
+  # Markdown: http://yzl.xyz:226/markdownonline
   LeanCloud: https://console.leancloud.cn
 
 # Table of Contents in the Sidebar
