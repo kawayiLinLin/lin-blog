@@ -60,6 +60,8 @@ tags:
 
 - gulp
 
+  <!-- more -->
+
   基于 `nodejs` 的 `stream` 的打包工具
   定位是基于任务流的自动化构建工具
   通过 task 对整个开发过程进行构建
@@ -132,33 +134,33 @@ tags:
 
     2. webpack.config.js
 
-        ```js
-        const path = require('path')
-        module.exports = {
-            mode: 'development', // 开发模式
-            devtools: false, // 不生成sourcemap
-            entry: "./src/app.js", //入口
-            output: {
-                path: path.resolve(__dirname, 'dist'),
-                filename: 'bundle.js'
-            },
-            module: {
-                rules: [
-                    test: /\.jsx?$/,
-                    use: {
-                        loader: 'babel-loader',
-                        options: {
-                            presets: ['@babel/preset-env']
-                        }
-                    },
-                    include: path.join(__dirname, 'src'),
-                    exclude: /node_modules/
-                ]
-            },
-            plugins: [],
-            devServer: {}
-        }
-        ```
+       ```js
+       const path = require('path')
+       module.exports = {
+           mode: 'development', // 开发模式
+           devtools: false, // 不生成sourcemap
+           entry: "./src/app.js", //入口
+           output: {
+               path: path.resolve(__dirname, 'dist'),
+               filename: 'bundle.js'
+           },
+           module: {
+               rules: [
+                   test: /\.jsx?$/,
+                   use: {
+                       loader: 'babel-loader',
+                       options: {
+                           presets: ['@babel/preset-env']
+                       }
+                   },
+                   include: path.join(__dirname, 'src'),
+                   exclude: /node_modules/
+               ]
+           },
+           plugins: [],
+           devServer: {}
+       }
+       ```
 
 - Rollup
 
@@ -228,11 +230,11 @@ tags:
 
     1. 安装
 
-        ```shell
-        npm install -g parcel-bundler
+       ```shell
+       npm install -g parcel-bundler
 
-        parcel src/index.html -p 3000
-        ```
+       parcel src/index.html -p 3000
+       ```
 
 ## Loader 和 Plugins 的不同
 
