@@ -81,29 +81,29 @@ tags:
 
     1. 安装
 
-    ```shell
-    npm install -S -D glup-cli gulp gulp-babel @babel/core @babel/preset-env
-    ```
+       ```shell
+       npm install -S -D glup-cli gulp gulp-babel @babel/core @babel/preset-env
+       ```
 
     2. gulpfile.js
 
-    ```js
-    const gulp = require("gulp")
-    const babel = require("gulp-babel")
-    function defaultTask(callback) {
-      gulp
-        .src("src/app.js") // 读取文件
-        .pipe(
-          babel({
-            // 传给 babel 任务
-            presets: ["@babel/preset-env"],
-          })
-        )
-        .pipe(gulp.dest("dist")) // 写到 dist 里
-      callback()
-    }
-    module.exports = defaultTask
-    ```
+       ```js
+       const gulp = require("gulp")
+       const babel = require("gulp-babel")
+       function defaultTask(callback) {
+         gulp
+           .src("src/app.js") // 读取文件
+           .pipe(
+             babel({
+               // 传给 babel 任务
+               presets: ["@babel/preset-env"],
+             })
+           )
+           .pipe(gulp.dest("dist")) // 写到 dist 里
+         callback()
+       }
+       module.exports = defaultTask
+       ```
 
 - Webpack
 
@@ -132,33 +132,33 @@ tags:
 
     2. webpack.config.js
 
-    ```js
-    const path = require('path')
-    module.exports = {
-        mode: 'development', // 开发模式
-        devtools: false, // 不生成sourcemap
-        entry: "./src/app.js", //入口
-        output: {
-            path: path.resolve(__dirname, 'dist'),
-            filename: 'bundle.js'
-        },
-        module: {
-            rules: [
-                test: /\.jsx?$/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ['@babel/preset-env']
-                    }
-                },
-                include: path.join(__dirname, 'src'),
-                exclude: /node_modules/
-            ]
-        },
-        plugins: [],
-        devServer: {}
-    }
-    ```
+        ```js
+        const path = require('path')
+        module.exports = {
+            mode: 'development', // 开发模式
+            devtools: false, // 不生成sourcemap
+            entry: "./src/app.js", //入口
+            output: {
+                path: path.resolve(__dirname, 'dist'),
+                filename: 'bundle.js'
+            },
+            module: {
+                rules: [
+                    test: /\.jsx?$/,
+                    use: {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['@babel/preset-env']
+                        }
+                    },
+                    include: path.join(__dirname, 'src'),
+                    exclude: /node_modules/
+                ]
+            },
+            plugins: [],
+            devServer: {}
+        }
+        ```
 
 - Rollup
 
@@ -228,11 +228,11 @@ tags:
 
     1. 安装
 
-    ```shell
-    npm install -g parcel-bundler
+        ```shell
+        npm install -g parcel-bundler
 
-    parcel src/index.html -p 3000
-    ```
+        parcel src/index.html -p 3000
+        ```
 
 ## Loader 和 Plugins 的不同
 
@@ -287,16 +287,17 @@ compiler.run((err, stats) => {
 确定好输出内容后，根据配置的输出路径和路径名，把文件写到文件系统（可以指定文件系统 compiler.inputFileSystem compiler.outputFileSystem compiler.watchFileSystem）
 
 伪代码模拟
+
 ```js
-const { SyncHook } = require('tapable')
-const fs = require('fs')
+const { SyncHook } = require("tapable")
+const fs = require("fs")
 
 class Compiler {
   constructor(options) {
     this.options = options
     this.hooks = {
-        run: new SyncHook(),
-        done: new SyncHook()
+      run: new SyncHook(),
+      done: new SyncHook(),
     }
   }
   run() {
@@ -307,47 +308,50 @@ class Compiler {
     // 2.3根据配置中的entry确定入口文件
     const entry = path.join(this.options.context, this.options.entry)
     // 3.1 读取模块内容
-    const entryContent = fs.readFileSync(entry, 'utf-8')
+    const entryContent = fs.readFileSync(entry, "utf-8")
     // 3.2 使用 loader 解析
     const entrySource = babelLoader(entryContent)
     // module 模块
     // chunk 代码块
     // file 文件
-    // bundle 
+    // bundle
     const entryModule = {
-        id: entry,
-        source: entrySource
+      id: entry,
+      source: entrySource,
     }
 
     modules.push(entryModule)
     // 把入口模块的代码转换成 AST，分析里面的 import 和 require 依赖
     // 继续解析入口引入的模块
-    const subEntry = path.join(this.options.context, 'subEntryPath')
+    const subEntry = path.join(this.options.context, "subEntryPath")
     // 3.1 读取模块内容
-    const subEntryContent = fs.readFileSync(subEntry, 'utf-8')
+    const subEntryContent = fs.readFileSync(subEntry, "utf-8")
     // 3.2 使用 loader 解析
     const subEntrySource = babelLoader(subEntryContent)
 
     const subModule = {
-        id: subEntry,
-        source: subEntrySource
+      id: subEntry,
+      source: subEntrySource,
     }
 
     modules.push(subModule)
     // 5.1根据入口和模块的依赖关系，组装成一个个包含多个模块的 Chunk
-    const chunk  = {
-        name: 'main',
-        modules: modules
+    const chunk = {
+      name: "main",
+      modules: modules,
     }
     chunks.push(chunk)
     // 5.2把每个 Chunk 转换成一个单独的文件加入到输出列表
     const file = {
-        file: this.options.output.filename,
-        source: `输出的文件内容`
+      file: this.options.output.filename,
+      source: `输出的文件内容`,
     }
     files.push(file)
-    const outputPath = path.join(this.options.output.path, this.options.output.filename)
-    fs.writeFileSync(outputPath, file.source, 'utf-8')
+    const outputPath = path.join(
+      this.options.output.path,
+      this.options.output.filename
+    )
+    fs.writeFileSync(outputPath, file.source, "utf-8")
     this.hooks.done.call()
   }
 }
@@ -366,7 +370,7 @@ compiler.run()
 
 // es6 - es5
 function babelLoader(source) {
-    return '返回解析后的新内容，如 ES6 转 ES5'
+  return "返回解析后的新内容，如 ES6 转 ES5"
 }
 ```
 
@@ -380,8 +384,8 @@ function babelLoader(source) {
 
 ## sourcemap 是什么，生产环境怎么用？
 
-+ sourcemap 是为了解决开发代码和实际运行代码不一致时，帮助我们debug到原始开发代码的技术
-+ webpack 是通过配置可以自动给我们sourcemap文件，map文件是一种对应编译文件和源文件的方法
+- sourcemap 是为了解决开发代码和实际运行代码不一致时，帮助我们 debug 到原始开发代码的技术
+- webpack 是通过配置可以自动给我们 sourcemap 文件，map 文件是一种对应编译文件和源文件的方法
 
 sourcemap 的类型
 
@@ -395,34 +399,37 @@ sourcemap 的类型
 
 在 entry 配置多个入口
 
-可能会导致重复打包chunk到多个bundle中
+可能会导致重复打包 chunk 到多个 bundle 中
 
 2. 动态导入或懒加载
 
 2.1 按需加载 如 React.lazy(() => import('path/file.js'))
 2.2 预加载 preload （必须要用到的资源）
 `<link href="xxx" rel="preload" as="script" />`
+
 ```js
 import(
-    'file.js',
-    /* webpackPreload: true */
-    /* webpackChunkName: "file" */
+  "file.js"
+  /* webpackPreload: true */
+  /* webpackChunkName: "file" */
 )
 ```
+
 2.3 预先拉取 prefetch (可能要用到的资源，告诉浏览器可能在未来会用到某个资源，在闲时加载)
 `<link href="xxx" rel="prefetch" as="script" />`
+
 ```js
 import(
-    'file.js',
-    /* webpackPrefetch: true */
-    /* webpackChunkName: "file" */
+  "file.js"
+  /* webpackPrefetch: true */
+  /* webpackChunkName: "file" */
 )
 ```
 
-module：就是 js 的模块化，webpack 支持commonJS，ES6 等模块规范，简单说就是可以用 import 引入的代码
-chunk：webpack根据功能拆出来的，包含三种情况
-1. 项目入口
-2. import动态引入的
-3. 通过splitChunks拆分的代码
-bundle：是webpack打包后的各个文件，一般和chunk是一对一的关系，是对chunk进行编译压缩打包处理之后的产物
+module：就是 js 的模块化，webpack 支持 commonJS，ES6 等模块规范，简单说就是可以用 import 引入的代码
+chunk：webpack 根据功能拆出来的，包含三种情况
 
+1. 项目入口
+2. import 动态引入的
+3. 通过 splitChunks 拆分的代码
+   bundle：是 webpack 打包后的各个文件，一般和 chunk 是一对一的关系，是对 chunk 进行编译压缩打包处理之后的产物
