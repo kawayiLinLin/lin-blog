@@ -393,7 +393,7 @@ sourcemap 的类型
 
 ![](sourcemaps.jpg)
 
-![sourcemap 原理](http://www.zhufengpeixun.com/strong/html/103.14.webpack-sourcemap.html#t152.%20sourcemap)
+[sourcemap 原理](http://www.zhufengpeixun.com/strong/html/103.14.webpack-sourcemap.html#t152.%20sourcemap)
 
 ## 代码分割
 
