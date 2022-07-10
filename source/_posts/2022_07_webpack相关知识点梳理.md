@@ -435,3 +435,12 @@ chunk：webpack 根据功能拆出来的，包含三种情况
 2. import 动态引入的
 3. 通过 splitChunks 拆分的代码
    bundle：是 webpack 打包后的各个文件，一般和 chunk 是一对一的关系，是对 chunk 进行编译压缩打包处理之后的产物
+
+## 如何通过 webpack 来优化前端性能
+
+1. 压缩JS TerserPlugin
+2. 压缩CSS OptimizeCssAssetsPlugin
+3. 压缩图片 image-webpack-loader
+4. 单独提取CSS MiniCssExtractPlugin
+5. 清除无用的CSS purgess-webpack-plugin
+6. 
