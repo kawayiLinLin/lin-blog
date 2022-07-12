@@ -434,7 +434,36 @@ chunk：webpack 根据功能拆出来的，包含三种情况
 1. 项目入口
 2. import 动态引入的
 3. 通过 splitChunks 拆分的代码
-   bundle：是 webpack 打包后的各个文件，一般和 chunk 是一对一的关系，是对 chunk 进行编译压缩打包处理之后的产物
+   
+bundle：是 webpack 打包后的各个文件，一般和 chunk 是一对一的关系，是对 chunk 进行编译压缩打包处理之后的产物
+
+好处：缓存、CDN、懒加载
+
+```js
+{
+  splitChunks: {
+    chunks: 'all', // 默认作用于异步chunk，值为all/initial/async
+    minSize: 0, // 默认值30kb，代码块的最小尺寸
+    minChunks: 1, // 被多少模块共享，在分割之前模块的被引用次数
+    maxAsyncRequests: 2, // 限制异步模块内部并行最大请求数
+    maxInitialRequests: 4, // 限制入口的拆分数量
+    name: true, // 打包后的名称，默认是 chunk 的名字通过分割符分割开，如vendor~
+    automaticNameDelimiter: "~", // 默认 webpack 会使用入口名和代码块的名称生成命名，如 vendor~main.js
+    cacheGroup: { // 满足不同条件的缓存组
+      chunks: "all",
+      test: /node_modules/, // 条件
+      priority: -10, // 优先级，一个 chunk 可能满足多个缓存组，会被抽取到优先级高的缓存组中，为了能够让自定义缓存组有更高的
+    },
+    common: {
+      chunks: "all",
+      minSize: 0, // 最小提取字节数
+      minChunks: 2, // 最少被几个 chunk 引用
+      priority: -20,
+      reuseExistingChunk: true, // 如果该 chunk 中引用了已经被抽取的 chunk，直接引用该 chunk，不会重复打包代码
+    }
+  }
+}
+```
 
 ## 如何通过 webpack 来优化前端性能
 
@@ -442,5 +471,10 @@ chunk：webpack 根据功能拆出来的，包含三种情况
 2. 压缩CSS OptimizeCssAssetsPlugin
 3. 压缩图片 image-webpack-loader
 4. 单独提取CSS MiniCssExtractPlugin
-5. 清除无用的CSS purgess-webpack-plugin
-6. 
+5. 清除无用的CSS purgecss-webpack-plugin
+6. Tree Shaking 
+7. Scope hoisting 在生产环境默认开启，开发环境需要 webpack.optimize.ModuleConcatenationPlugin 插件，把导出直接编译成函数
+8. 代码分割
+9. 入口点分割
+10. 动态导入和懒加载 import(xxx)
+11. preload(资源的权重提高) & prefetch(可能用到，闲时加载)
