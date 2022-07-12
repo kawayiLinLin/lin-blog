@@ -478,3 +478,40 @@ bundle：是 webpack 打包后的各个文件，一般和 chunk 是一对一的�
 9. 入口点分割
 10. 动态导入和懒加载 import(xxx)
 11. preload(资源的权重提高) & prefetch(可能用到，闲时加载)
+
+## CDN
+
+首页不缓存
+
+第三方库强缓存
+
+其他 chunk 变了，缓存失效（hash）
+
+```js
+{
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name].[hash].js',
+    chunkFileName: '[name].[hash].chunk.js',
+    publicPath: 'https://img.yzl.xyz'
+  }
+}
+
+new MiniCssExtractPlugin({
+  filename: '[name].[chunk].css'
+})
+```
+
+## hash、chunkhash、conenthash 的区别
+
+文件指纹
+
+`[name].[hash].js` 占位符
+
+ext 资源后缀
+name 文件名称
+path 相对路径
+folder 文件所在的文件夹
+hash 每次webpack构建生成的唯一的hash值
+chunkhash 根据chunk生产的hash值，来源于同一个chunk，则hash值就一样
+contenthash 根据内容生产hash值，文件内容相同，hash值就相同
