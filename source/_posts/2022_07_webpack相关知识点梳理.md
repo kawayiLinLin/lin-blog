@@ -515,3 +515,116 @@ folder 文件所在的文件夹
 hash 每次webpack构建生成的唯一的hash值
 chunkhash 根据chunk生产的hash值，来源于同一个chunk，则hash值就一样
 contenthash 根据内容生产hash值，文件内容相同，hash值就相同
+
+## 对 bundle 体积进行监控和分析 BundleAnalyzerPlugin
+
+```js
+new BundleAnalyzerPlugin({
+  analyzerMode: "disabled", // 不启动展示打包的服务和页面
+  generateStatsFile: true // 生成 stats.json 文件
+})
+```
+
+```shell
+webpack --profile --json -> stats.json # 生成文件
+webpack-bundle-analyzer --port 8888 ./dist/stats.json # 基于已有的文件查看依赖图
+```
+
+## 如何提高 webpack 的构建速度
+
+**费时分析**
+
+```js
+const smw = new SpeedMeasureWebpackPlugin()
+
+module.export = swm.wrap({
+  // webpack 配置
+})
+```
+
+**缩小范围**
+
+1. 指定 `extensions: ['.js', '.jsx']`，不用在 require 或 import 时，添加扩展名
+2. alias 别名，加快查找模块的速度, `alias: { "bootstrap": path.resolve(__dirname, 'node_modules/_bootstrap@3.3.7@bootstrap/dist/css/bootstrap.css') }`，写死部分模块的路径
+3. 配置 resolve.modules: `[path.resolve(__dirname, 'node_modules')]`（原来会一级一级向上找）
+4. resolve.mainFields 查找包时，要导入的文件，从该包的 package.json 文件中查找 （target 为 web 或 webworker，`["browser", "module", "main"]` ，否则为 `["module", "main"]`）
+5. `resolve.mainFiles: ["index"]`，如果没有 package.json 时，可以直接查找文件
+6. resolve.resolveLoader (modules, extensions, mainFields等字段)，用于查找loader
+7. module.noParse 不需要解析依赖的第三方库，支持配置正则或函数
+8. ignore-plugin 指定模块不打包 `new Webpack.IgnorePlugin(/文件夹/, /模块/)`
+9. oneOf 只匹配到一个 loader 就不继续匹配了
+
+**日志优化**
+
+friendly-errors-webpack-plugin
+
+**利用缓存**
+
+```js
+{
+  use: [
+    "cache-loader"
+    {
+      loader: "babel-loader"
+      options: {
+        presets: ['@babel/preset-env'],
+        cacheDirectory: true // 开启babel缓存
+      }
+    }
+  ]
+}
+```
+
+hard-source-webpack-plugin
+为模块提供中间缓存，webpack5内置
+
+**多进程处理**
+
+thread-loader 线程loader
+放在这个 loader 后面的 loader 会在一个单独的 work pool 中运行
+
+**动态链接库**
+
+.dll 后缀，包含给其他模块调用的函数和数据
+
+dll-plugin 打包动态链接库
+dll-reference-plugin 在配置文件中引入动态链接库
+
+webpack.dll.config.js
+
+```js
+const path = require("path")
+const DllPlugin = require("webpack/lib/DllPlugin")
+
+module.exports = {
+  mode: "development",
+  entry: {
+    react: ["react", "react-dom"],
+  },
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    filename: "[name].dll.js", // react.dll.js
+    library: "_dll_[name]" // window._dll_react
+  },
+  plugins: [
+    new DllPlugin({
+      name: "_dll_[name]",
+      path: path.resolve(__dirname, "dist", "[name].manifest.json") // react.manifest.json 全局变量里有哪些模块的清单
+    })
+  ]
+}
+```
+
+```shell
+webpack --config webpack.dll.config.js -mode=development
+```
+
+使用动态链接库文件
+
+```js
+new DllReferencePlugin({
+  manifest: require("./dist/react.manifest.json")
+})
+```
+
+`import React from 'react'` 时，如果上面清单有，就不打包了，直接去全局变量里找了（要引入打包后的 react.dll.js）
