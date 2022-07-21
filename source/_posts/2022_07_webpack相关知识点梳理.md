@@ -628,3 +628,63 @@ new DllReferencePlugin({
 ```
 
 `import React from 'react'` 时，如果上面清单有，就不打包了，直接去全局变量里找了（要引入打包后的 react.dll.js）
+
+## 如何编写 loader
+
+loader 的叠加顺序
+
+post 后置、inline 内联、normal 正常、pre 前置
+
+从右往左
+
+```js
+function loader(source) {
+  return source + '// 这是注释'
+}
+```
+
+pitch 是从左往右的，和 loader 执行顺序相反
+
+```js
+loader.pitch = function () {
+  return 'pitch'
+}
+```
+
+如果一个 pitch 有返回值，则将结果给前一个 loader，并从右往左执行
+
+## 写loader的思路
+
+```js
+const babel = require('babel/core')
+function loader(source, inputSourceMap, data) {
+  const options = {
+    presets: ['@babel/preset-env'],
+    inputSourceMap: inputSourceMap,
+    filename: this.request.split('!')[1].split('/').pop()
+  }
+
+  const { code, map, ast } = babel.transform(source, options)
+
+  return this.callback(null, code, map, ast)
+}
+
+module.exports = loader
+```
+
+```js
+resolveLoader: {
+  alias: {
+    // 配置别名
+    "babel-loader": resolve("xxxx/babel-loader.js")
+  },
+  // 或者配置loader加载目录
+  modules: [path.resolve('./loaders'), 'node_modules']
+}
+
+// 然后
+{
+  test: /\.js$/,
+  use: ['babel-loader']
+}
+```
