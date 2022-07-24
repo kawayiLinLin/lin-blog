@@ -688,3 +688,204 @@ resolveLoader: {
   use: ['babel-loader']
 }
 ```
+
+## 写 plugins 的思路
+
+1. 看webpack源码，照着它内置的插件去实现
+
+## webpack 打包的原理，babel 抽象语法树
+
+实现一个非常简单的 webpack
+
+```js
+const fs = require('fs') // 读文件
+const path = require('path') // 处理路径
+const types = require('babel-types') // 处理各种节点类型，把节点类型处理成对象
+const parser = require('@babel/parser') // 把源代码处理成抽象语法树
+const traverse = require('@babel/traverse').default // 遍历语法树
+const generate = require('@babel/generate').default // 语法树 -> 源代码
+
+const baseDir = process.cwd().replace(/\\/g, path.posix.sep) // 拿到根目录（path.posix.sep === '/'）
+const entry = path.posix.join(baseDir, 'src/index.js') // 拿到入口文件
+
+const modules = [] // 本次编译的所有模块
+const entryModule = buildModule(entry)
+const content = `
+(function (modules) {
+  function __webpack_require(moduleId) {
+    var module = {
+      i: moduleId,
+      exports: {}
+    }
+    module[moduleId].call(
+      module.exports,
+      module,
+      module.exports,
+      __webpack_require__
+    )
+
+    return module.exports
+  }
+  return __webpack_require__("${entryModule.id}")
+})({
+  ${
+    modules.map(
+      module => `"${module.id}": function (module, exports, __webpack_require__) { ${module._source} }`
+    ).join(",")
+  }
+})
+`
+fs.writeFileSync('./dist/bundle.js', content)
+
+
+function buildModule(absolutePath) {
+  const body = fs.readFileSync(absolutePath, 'utf-8') // 读取文件内容
+  const ast = parser.parse(body, {
+    sourceType: 'module'
+  }) // 源代码转成抽象语法树
+  const moduleId = './' + path.posix.relative(baseDir, absolutePath) // 拿到相对路径，作为 moduleId，比如 ./src/index.js，在 webpack 里面，模块 id 都是相对（相对根目录）路径
+  const module = { id: moduleId, deps: [] } // 声明一个模块对象
+  
+  traverse(ast, {
+    // 处理函数调用的节点
+    CallExpression({ node }) {
+      if (node.callee.name === 'require') {
+        node.callee.name = '__webpack_require__'
+        const moduleName = node.arguments[0].value // ./title.js
+
+        const dirname = path.posix.dirname (absolutePath) // 当前模块的父目录的绝对路径 c://xxx/xxx/src
+        const depPath = path.posix.join(dirname, moduleName) // 模块的依赖的路径 c://xxx/xxx/src/title.js
+        const depModuleId = './' + path.posix.relative(baseDir, depPath) // 依赖的模块 id
+        node.arguments = [types.stringLiteral(depModuleId)] // 把 __webpack_require__ 的参数替换为“依赖模块id”
+        module.deps.push(buildModule(depPath))
+      }
+    }
+  })
+
+  const { code } = generate(ast) // 重新生成后的代码
+  module._source = code
+  modules.push(module)
+
+  return module
+}
+```
+
+## tree-shaking
+
+```js
+import { flatten, concat } from 'lodash'
+// 转换为
+import { flatten } from 'lodash/flatten'
+import { concat } from 'lodash/concat'
+```
+
+```js
+{
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ['@babel/preset-env'],
+            plugins: [["import" /* babel-plugin-import */, { libraryName: "lodash" }]]
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+babel-plugin-import 实现原理
+
+```js
+const types = require('babel-types')
+const visitor = {
+  ImportDeclartion: {
+    enter(path, state) {
+      const specifiers = path.node.specifiers
+      const source = path.node.source // lodash
+
+      if (state.opts.libraryName === source.value && !types.isImportDefaultSpecifier(specifiers[0])) {
+        const declarations = specifiers.map(specifier => {
+          return types.ImportDeclartion(
+            [types.ImportDefaultSpecifier(specofier.local)],
+            types.stringLiteral(`${source.value}/${specifier.local.name}`)
+          )
+        })
+        path.replaceWithMultiple(declarations)
+      }
+    }
+  }
+}
+
+// babel 插件需要返回的东西
+module.exports = function (babel) {
+  return {
+    visitor
+  }
+}
+```
+
+## 热更新 HMR
+
+不刷新页面的情况下更新页面，保持应用状态，提升开发效率
+
+1. 创建 webpack 实例，得到 compiler
+2. 创建一个 webpack-dev-server（server.listen(1234)）
+3. webpack-dev-middleware（express中间件），用于提供编译后的静态文件服务，如果路径是 `/`，返回 index.html，如果访问文件，（没有文件404），把 mimetype 写到 content-type 响应头，响应文件
+4. socket 服务器
+5. 启动服务器，compiler.watch({}, (err) => {})
+6. `compiler.hooks.done.tap('webpack-dev-server', (stats) => { lastHash = stats.hash; sockets.forEach(socket = > (socket.emit('hash', stats.hash), socket.emit('ok'))) })`，sockets 是 socket 连接时添加的一个个 websocket 连接实例
+
+7. 客户端 currenthash， hotcurrenthash（上一次的hash，下文用lasthash替代）， socket连接，监听hash事件，修改currenthash，监听ok事件，执行hotCheck
+8. 如果没有lastHash 或者 lastHash 和 currenthash 一样，则return
+9. 否则调用hotDownloadManifest请求hot-update.json（/ + lasthash + './hot-update.json'），`hotDownloadManifest().then(res => { const chunkIds = []; /* [{main: true}] */ chunkIds.forEach(chunkId => hotDownloadUpdateChunk(chunkId)) /* 通过jsonp获取到最新的模块代码 */ })`
+10. `function hotDownloadUpdateChunk() { script.src = '/' + chunkId + '.' + lashhash + '.hot-update.json' }`，然后这个 script 里会调用 webpackHotUpdate
+
+```js
+// 注入
+import '../webpackHotDevClient'
+if (module.hot) {
+  module.hot.accpet(['./title.js'], () => { /* 触发 */ })
+}
+// webpackHotUpdate('main', { [`${chunkId}`]: function(module, exports) { eval(xxx 新代码) } })
+function webpackHotUpdate(chunkId, moreModules) {
+  for (const moduleId in moreModules) {
+    const oldModules = __webpack_require__.c[moduleId] // 获取老模块
+    const { parent, children } = oldModules // 谁引用了它，就是它的 parents
+    const module = (__webpack_require__.c[moduleId] = {
+      i: moduleId,
+      exports: {},
+      parents,
+      children,
+      hot: window.hotCreateModule()
+    })
+    moreModules[moduleId].call(
+      module.exports,
+      module,
+      module.exports,
+      __webpack_require__
+    )
+    parents.forEach(parent => {
+      const parentModule = __webpack_require__.c[parent]
+      parentModule.hot && parentModule.hot._accpetedDependencies[moduleId] && parentModule.hot._accpetedDependencies[moduleId]
+    })
+    lastHash = currenthash
+  }
+}
+
+window.hotCreateModule = function() {
+  const hot = {
+    _accpetedDependencies: {},
+    accpet: function(deps, callback) {
+      for (let i = 0; i < deps.length, i++) {
+        hot._accpetedDependencies[deps[i]] = callback
+      }
+    }
+  }
+  return hot
+}
+```
