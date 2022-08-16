@@ -27,7 +27,7 @@ nvm list # 当前所有已下载的 node 版本
 node -v # 查看当前 node 版本
 npm -v # 查看当前 npm 版本
 ```
-
+<!-- more -->
 
 ## vscode 终端
 
