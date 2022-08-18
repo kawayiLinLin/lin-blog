@@ -13,3 +13,9 @@ source/lib/*
 !source/lib/font-awesome/
 !source/lib/anime.min.js
 !source/lib/velocity/
+!source/lib/jquery.min.js
+!source/lib/jquery.fancybox.min.js
+!source/lib/jquery.fancybox.min.css
+!source/lib/canvas-ribbon.js
+!source/lib/medium-zoom.min.js
+!source/lib/lozad.min.js
