@@ -2,6 +2,10 @@
 title: webpack相关知识点梳理
 date: 2022-07-03 14:58:25
 tags:
+  - webpack
+category:
+  - 技术
+  - 分享
 ---
 
 ## 与 Webpack 类似的工具有哪些？为什么选择和弃用 Webpack

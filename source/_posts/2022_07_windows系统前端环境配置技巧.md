@@ -2,6 +2,10 @@
 title: windows系统前端环境配置技巧
 date: 2022-07-10 00:27:26
 tags:
+  - windows
+category:
+  - 技术
+  - 分享
 ---
 
 ## 安装node
