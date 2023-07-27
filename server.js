@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(bodyParser.json({ limit: '200mb' }))
 
-app.use('/lin/', express.static('./public'))
+app.use('/lin/', express.static(path.join(__dirname, './public')))
 
 app.get('/', function(_req, res) {
     res.redirect('/lin')
@@ -24,8 +24,8 @@ app.get('/lin', function(_req, res) {
 app.post('/deploy', function(_req, res) {
     console.log('start')
     const child_process = require('child_process')
-    child_process.exec('chmod +x ./deploy.sh')
-    child_process.execFile('./deploy.sh', function(error, stdout,  stderr) {
+    child_process.exec(`chmod +x ${path.join(__dirname, './deploy.sh')}`)
+    child_process.execFile(path.join(__dirname, './deploy.sh'), function(error, stdout,  stderr) {
         if (error) {
             console.log(error)
         }
@@ -41,9 +41,9 @@ app.post('/deploy', function(_req, res) {
 })
 
 
-const privateKey = fs.readFileSync('./8344303_yzl.xyz.key', 'utf8')
+const privateKey = fs.readFileSync(path.join(__dirname, './8344303_yzl.xyz.key'), 'utf8')
 
-const certificate = fs.readFileSync('./8344303_yzl.xyz.pem', 'utf8')
+const certificate = fs.readFileSync(path.join(__dirname, './8344303_yzl.xyz.pem'), 'utf8')
 
 const credentials = { key: privateKey, cert: certificate }
 
